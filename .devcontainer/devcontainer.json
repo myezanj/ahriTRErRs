@@ -1,0 +1,17 @@
+{
+  "name": "ahri-tre-r",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "r",
+  "workspaceFolder": "/workspaces/ahri-tre-r",
+  "remoteUser": "vscode",
+  "features": {},
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "REditorSupport.r",
+        "rdebugger.r-debugger"
+      ]
+    }
+  },
+  "postCreateCommand": "R -q -e 'devtools::document(); devtools::test()'"
+}

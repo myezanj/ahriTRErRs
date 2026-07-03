@@ -1,0 +1,21 @@
+Package: ahritre
+Title: AHRI TRE R Binding Seed
+Version: 0.1.0
+Authors@R:
+    person("AHRI TRE", "Maintainers", role = c("aut", "cre"), email = "maintainers@example.invalid")
+Description: Seed package for future AHRI TRE R bindings over the stable C ABI
+    and public JSON protocol.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Depends:
+    R (>= 4.3)
+Imports:
+    jsonlite
+Suggests:
+    arrow,
+    testthat (>= 3.0.0),
+    tibble,
+    withr
+Config/testthat/edition: 3

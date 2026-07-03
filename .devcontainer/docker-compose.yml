@@ -1,0 +1,37 @@
+services:
+  r:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    command: sleep infinity
+    env_file:
+      - .env
+    environment:
+      AHRI_TRE_LAKE_CONTAINER_PATH: ${AHRI_TRE_LAKE_CONTAINER_PATH:-/workspaces/ahri-tre-r/.lake}
+      TRE_LAKE_PATH: ${AHRI_TRE_LAKE_CONTAINER_PATH:-/workspaces/ahri-tre-r/.lake}
+      TRE_HOST: postgres
+      TRE_PORT: "5432"
+      TRE_USER: ${POSTGRES_USER:-tre_user}
+      TRE_PWD: ${POSTGRES_PASSWORD:-tre_password}
+      TRE_DBNAME: ${POSTGRES_DB:-tre}
+    volumes:
+      - ..:/workspaces/ahri-tre-r:cached
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:18-bookworm
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-tre_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tre_password}
+      POSTGRES_DB: ${POSTGRES_DB:-tre}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+  postgres-data:
