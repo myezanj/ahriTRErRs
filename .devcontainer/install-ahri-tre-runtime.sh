@@ -20,21 +20,58 @@ esac
 
 asset="ahri-tre-${version}-${target}.tar"
 base_url="https://github.com/AHRIORG/ahri-tre-rs/releases/download/${release_tag}"
+api_url="https://api.github.com/repos/AHRIORG/ahri-tre-rs"
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "${tmp_dir}"' EXIT
+
+resolve_asset_id() {
+  local name="$1"
+  local release_json="${tmp_dir}/release.json"
+
+  curl -fsSL \
+    -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "${api_url}/releases/tags/${release_tag}" \
+    -o "${release_json}" || {
+      cat >&2 <<EOF
+failed to read AHRI TRE runtime release metadata for ${release_tag}
+Set GITHUB_TOKEN to a token that can read AHRIORG/ahri-tre-rs releases, or set AHRI_TRE_RELEASE_TAG to an existing release.
+EOF
+      return 1
+    }
+
+  jq -er --arg name "${name}" '.assets[] | select(.name == $name) | .id' "${release_json}" || {
+    cat >&2 <<EOF
+AHRI TRE runtime release ${release_tag} does not contain asset ${name}
+Check AHRI_TRE_RELEASE_TAG or update the installer asset naming convention.
+EOF
+    return 1
+  }
+}
 
 download_asset() {
   local name="$1"
   local output="$2"
 
   if [ -n "${GITHUB_TOKEN:-}" ]; then
+    local asset_id
+    asset_id="$(resolve_asset_id "${name}")"
+
     curl -fsSL \
       -H "Authorization: Bearer ${GITHUB_TOKEN}" \
       -H "Accept: application/octet-stream" \
-      "${base_url}/${name}" \
+      -H "X-GitHub-Api-Version: 2022-11-28" \
+      "${api_url}/releases/assets/${asset_id}" \
       -o "${output}"
   else
-    curl -fsSL "${base_url}/${name}" -o "${output}"
+    curl -fsSL "${base_url}/${name}" -o "${output}" || {
+      cat >&2 <<EOF
+failed to download AHRI TRE runtime asset: ${base_url}/${name}
+If AHRIORG/ahri-tre-rs or ${release_tag} is private, set GITHUB_TOKEN in the environment used to rebuild the devcontainer.
+EOF
+      return 1
+    }
   fi
 }
 

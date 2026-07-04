@@ -10,3 +10,4 @@ src/*.dylib
 dist/
 .lake/
 .devcontainer/.env
+.env
