@@ -2,6 +2,14 @@
 
 Seed repository for the future AHRI TRE R binding.
 
+## Installation
+
+Install from GitHub:
+
+```r
+remotes::install_github("AHRIORG/ahri-tre-r")
+```
+
 This package is intentionally small. It demonstrates how an R package should
 consume a prebuilt AHRI TRE runtime artifact, load the stable C ABI library,
 check protocol compatibility, manage the local runtime through ABI lifecycle
@@ -63,6 +71,19 @@ resolve to an alias in some shells:
 ```powershell
 R.exe -q -e "devtools::test()"
 ```
+
+Run full package checks before publishing changes:
+
+```r
+devtools::check(document = FALSE, error_on = "warning")
+```
+
+## Release Hygiene
+
+- Record user-visible changes in `NEWS.md`.
+- Keep generated wrappers in sync with schema updates by running
+  `tools/generate_wrappers.ps1`.
+- Ensure `devtools::test()` and `devtools::check()` pass before release.
 
 ## Project Organization
 

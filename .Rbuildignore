@@ -1,3 +1,5 @@
 ^docs$
 ^[.]devcontainer($|/)
 ^[.]env$
+^[.]github$
+^cran-comments[.]md$

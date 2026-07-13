@@ -1,11 +1,15 @@
 Package: ahritre
-Title: AHRI TRE R Binding Seed
+Title: R Bindings for the AHRI TRE Runtime and Protocol
 Version: 0.1.0
 Authors@R:
     person("AHRI TRE", "Maintainers", role = c("aut", "cre"), email = "maintainers@example.invalid")
-Description: Seed package for future AHRI TRE R bindings over the stable C ABI
-    and public JSON protocol.
+Description: Provides R bindings over the AHRI TRE stable C ABI and public
+    JSON protocol. Includes runtime artifact loading, protocol request
+    execution, payload handling, and generated command wrappers for TRE
+    interfaces.
 License: MIT + file LICENSE
+URL: https://github.com/AHRIORG/ahri-tre-r
+BugReports: https://github.com/AHRIORG/ahri-tre-r/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
