@@ -1,0 +1,25 @@
+template:
+  bootstrap: 5
+
+url: https://ahriorg.github.io/ahri-tre-r/
+
+authors:
+  AHRI TRE Maintainers:
+    href: https://github.com/AHRIORG/ahri-tre-r
+
+reference:
+  - title: Client and Runtime
+    contents:
+      - AhriTreClient
+      - initialize_runtime
+      - discover_runtime
+      - stop_runtime
+
+  - title: Protocol
+    contents:
+      - execute_json
+      - new_tre_protocol_request
+
+  - title: Generated Wrappers
+    contents:
+      - matches("^[a-z0-9_]+$")

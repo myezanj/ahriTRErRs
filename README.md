@@ -85,6 +85,11 @@ devtools::check(document = FALSE, error_on = "warning")
   `tools/generate_wrappers.ps1`.
 - Ensure `devtools::test()` and `devtools::check()` pass before release.
 
+See also:
+
+- `CONTRIBUTING.md` for contribution workflow.
+- `CODE_OF_CONDUCT.md` for collaboration standards.
+
 ## Project Organization
 
 The package is organized by responsibility:

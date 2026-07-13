@@ -3,3 +3,6 @@
 ^[.]env$
 ^[.]github$
 ^cran-comments[.]md$
+^CONTRIBUTING[.]md$
+^CODE_OF_CONDUCT[.]md$
+^_pkgdown[.]yml$
