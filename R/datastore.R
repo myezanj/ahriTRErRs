@@ -46,6 +46,7 @@ datastore_create <- function(client, datastore = NULL, lake_base_path = NULL, su
 
 datastore_info <- function(client, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
+    "format" = format
   )
   tre_command_call(
     client = client,
@@ -81,6 +82,7 @@ datastore_list <- function(client, super_user = NULL, super_password_env = NULL,
 
 datastore_ping <- function(client, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
+    "format" = format
   )
   tre_command_call(
     client = client,
@@ -197,6 +199,7 @@ domain_get <- function(client, name = NULL, format = NULL, ..., .body = NULL, .p
 
 domain_list <- function(client, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
+    "format" = format
   )
   tre_command_call(
     client = client,
@@ -235,6 +238,7 @@ tag_get <- function(client, target = NULL, name = NULL, domain = NULL, version =
 
 tag_list <- function(client, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
+    "format" = format
   )
   tre_command_call(
     client = client,
@@ -275,6 +279,7 @@ tag_set <- function(client, target = NULL, name = NULL, tag = NULL, clear = NULL
 
 variable_add <- function(client, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
+    "format" = format
   )
   tre_command_call(
     client = client,
@@ -371,6 +376,7 @@ variable_search <- function(client, cursor = NULL, limit = NULL, width = NULL, f
 
 variable_update <- function(client, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
+    "format" = format
   )
   tre_command_call(
     client = client,

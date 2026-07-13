@@ -304,6 +304,7 @@ study_get <- function(client, name = NULL, format = NULL, ..., .body = NULL, .pr
 
 study_list <- function(client, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
+    "format" = format
   )
   tre_command_call(
     client = client,

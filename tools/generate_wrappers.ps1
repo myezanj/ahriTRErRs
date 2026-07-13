@@ -79,7 +79,7 @@ function Unique-Parameters {
         $seen[$item.Param] = $true
         $unique.Add($item)
     }
-    $unique
+    @($unique | ForEach-Object { $_ })
 }
 
 function To-AsciiText {
@@ -342,7 +342,7 @@ foreach ($categoryName in $categoryFileMap.Keys) {
             $params.Add($flag)
         }
 
-        $params = Unique-Parameters $params
+        $params = @(Unique-Parameters $params)
 
         $sigParts = New-Object System.Collections.Generic.List[string]
         $sigParts.Add('client')
@@ -354,14 +354,21 @@ foreach ($categoryName in $categoryFileMap.Keys) {
         $sigParts.Add('.protocol_version = TRE_PROTOCOL_VERSION')
 
         [void]$sb.AppendLine(($row.Function + ' <- function(' + ($sigParts -join ', ') + ') {'))
+        $fieldLines = @()
+        foreach ($p in $params) {
+            if ($null -eq $p -or -not $p.Param -or -not $p.Key) {
+                continue
+            }
+            $fieldLines += ('    "{0}" = {1}' -f $p.Key, $p.Param)
+        }
+
         [void]$sb.AppendLine('  auto_fields <- list(')
-        if ($params.Count -eq 0) {
+        if ($fieldLines.Count -eq 0) {
             [void]$sb.AppendLine('  )')
         } else {
-            for ($i = 0; $i -lt $params.Count; $i++) {
-                $p = $params[$i]
-                $suffix = if ($i -eq ($params.Count - 1)) { '' } else { ',' }
-                [void]$sb.AppendLine(('    "{0}" = {1}{2}' -f $p.Key, $p.Param, $suffix))
+            for ($i = 0; $i -lt $fieldLines.Count; $i++) {
+                $suffix = if ($i -eq ($fieldLines.Count - 1)) { '' } else { ',' }
+                [void]$sb.AppendLine(($fieldLines[$i] + $suffix))
             }
             [void]$sb.AppendLine('  )')
         }

@@ -2,6 +2,7 @@
 
 completion <- function(client, shell = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
+    "shell" = shell
   )
   tre_command_call(
     client = client,
@@ -18,6 +19,7 @@ completion <- function(client, shell = NULL, ..., .body = NULL, .protocol_versio
 
 doctor <- function(client, strict = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
+    "strict" = strict
   )
   tre_command_call(
     client = client,
@@ -52,6 +54,7 @@ schema_get <- function(client, schema_id = NULL, format = NULL, ..., .body = NUL
 
 schema_list <- function(client, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
+    "format" = format
   )
   tre_command_call(
     client = client,
@@ -68,6 +71,7 @@ schema_list <- function(client, format = NULL, ..., .body = NULL, .protocol_vers
 
 version <- function(client, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
+    "format" = format
   )
   tre_command_call(
     client = client,

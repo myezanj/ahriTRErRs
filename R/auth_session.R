@@ -42,6 +42,7 @@ auth_logout <- function(client, auth_context = NULL, token_file = NULL, cached =
 
 auth_status <- function(client, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
+    "format" = format
   )
   tre_command_call(
     client = client,
@@ -58,6 +59,7 @@ auth_status <- function(client, format = NULL, ..., .body = NULL, .protocol_vers
 
 daemon_doctor <- function(client, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
+    "format" = format
   )
   tre_command_call(
     client = client,
@@ -74,6 +76,7 @@ daemon_doctor <- function(client, format = NULL, ..., .body = NULL, .protocol_ve
 
 daemon_start <- function(client, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
+    "format" = format
   )
   tre_command_call(
     client = client,
@@ -90,6 +93,7 @@ daemon_start <- function(client, format = NULL, ..., .body = NULL, .protocol_ver
 
 daemon_status <- function(client, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
+    "format" = format
   )
   tre_command_call(
     client = client,
@@ -106,6 +110,7 @@ daemon_status <- function(client, format = NULL, ..., .body = NULL, .protocol_ve
 
 daemon_stop <- function(client, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
+    "format" = format
   )
   tre_command_call(
     client = client,
@@ -122,6 +127,7 @@ daemon_stop <- function(client, format = NULL, ..., .body = NULL, .protocol_vers
 
 daemon_version <- function(client, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
+    "format" = format
   )
   tre_command_call(
     client = client,
@@ -210,6 +216,7 @@ session_reopen <- function(client, name = NULL, force_reauth = NULL, clear_token
 
 session_status <- function(client, name = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
+    "name" = name
   )
   tre_command_call(
     client = client,
@@ -226,6 +233,7 @@ session_status <- function(client, name = NULL, ..., .body = NULL, .protocol_ver
 
 session_use <- function(client, name = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
+    "name" = name
   )
   tre_command_call(
     client = client,
