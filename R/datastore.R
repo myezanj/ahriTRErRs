@@ -104,7 +104,7 @@ datastore_rotate <- function(client, super_user = NULL, super_password_env = NUL
   )
   tre_command_call(
     client = client,
-    kind = "datastore.rotate",
+    kind = "datastore.rotate-lake-credential",
     ...,
     .auto_fields = auto_fields,
     .body = .body,
@@ -124,7 +124,7 @@ datastore_schema <- function(client, super_user = NULL, super_password_env = NUL
   )
   tre_command_call(
     client = client,
-    kind = "datastore.schema",
+    kind = "datastore.schema-status",
     ...,
     .auto_fields = auto_fields,
     .body = .body,

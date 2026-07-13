@@ -178,7 +178,7 @@ session_open <- function(client, name = NULL, profile = NULL, env_file = NULL, .
   )
   tre_command_call(
     client = client,
-    kind = "session.open",
+    kind = "session.open-oauth",
     ...,
     .auto_fields = auto_fields,
     .body = .body,

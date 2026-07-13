@@ -85,7 +85,7 @@ study_add_domain <- function(client, study = NULL, domain = NULL, format = NULL,
   )
   tre_command_call(
     client = client,
-    kind = "study.add.domain",
+    kind = "study.add-domain",
     ...,
     .auto_fields = auto_fields,
     .body = .body,
@@ -103,7 +103,7 @@ study_clear_current <- function(client, study = NULL, format = NULL, ..., .body 
   )
   tre_command_call(
     client = client,
-    kind = "study.clear.current",
+    kind = "study.clear-current",
     ...,
     .auto_fields = auto_fields,
     .body = .body,
@@ -157,7 +157,7 @@ study_custodians_add <- function(client, study = NULL, delegate = NULL, ..., .bo
   )
   tre_command_call(
     client = client,
-    kind = "study.custodians.add",
+    kind = "study.custodians.add-delegate",
     ...,
     .auto_fields = auto_fields,
     .body = .body,
@@ -193,7 +193,7 @@ study_custodians_remove <- function(client, study = NULL, format = NULL, ..., .b
   )
   tre_command_call(
     client = client,
-    kind = "study.custodians.remove",
+    kind = "study.custodians.remove-delegate",
     ...,
     .auto_fields = auto_fields,
     .body = .body,
@@ -211,7 +211,7 @@ study_custodians_transfer <- function(client, study = NULL, format = NULL, ..., 
   )
   tre_command_call(
     client = client,
-    kind = "study.custodians.transfer",
+    kind = "study.custodians.transfer-primary",
     ...,
     .auto_fields = auto_fields,
     .body = .body,

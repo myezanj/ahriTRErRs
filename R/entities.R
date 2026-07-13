@@ -79,7 +79,7 @@ entity_instance_asset_link_add <- function(client, study = NULL, width = NULL, f
   )
   tre_command_call(
     client = client,
-    kind = "entity.instance.asset.link.add",
+    kind = "entity.instance.asset-link.add",
     ...,
     .auto_fields = auto_fields,
     .body = .body,
@@ -98,7 +98,7 @@ entity_instance_asset_link_list <- function(client, study = NULL, width = NULL, 
   )
   tre_command_call(
     client = client,
-    kind = "entity.instance.asset.link.list",
+    kind = "entity.instance.asset-link.list",
     ...,
     .auto_fields = auto_fields,
     .body = .body,
@@ -117,7 +117,7 @@ entity_instance_dataset_link_add <- function(client, study = NULL, width = NULL,
   )
   tre_command_call(
     client = client,
-    kind = "entity.instance.dataset.link.add",
+    kind = "entity.instance.dataset-link.add",
     ...,
     .auto_fields = auto_fields,
     .body = .body,
@@ -136,7 +136,7 @@ entity_instance_dataset_link_get <- function(client, study = NULL, width = NULL,
   )
   tre_command_call(
     client = client,
-    kind = "entity.instance.dataset.link.get",
+    kind = "entity.instance.dataset-link.get",
     ...,
     .auto_fields = auto_fields,
     .body = .body,
@@ -155,7 +155,7 @@ entity_instance_dataset_link_list <- function(client, study = NULL, width = NULL
   )
   tre_command_call(
     client = client,
-    kind = "entity.instance.dataset.link.list",
+    kind = "entity.instance.dataset-link.list",
     ...,
     .auto_fields = auto_fields,
     .body = .body,
@@ -194,7 +194,7 @@ entity_instance_ensure <- function(client, study = NULL, dry_run = NULL, format 
   )
   tre_command_call(
     client = client,
-    kind = "entity.instance.ensure",
+    kind = "entity.instance.ensure-from-dataset",
     ...,
     .auto_fields = auto_fields,
     .body = .body,
@@ -312,7 +312,7 @@ entity_relation_add <- function(client, format = NULL, ..., .body = NULL, .proto
   )
   tre_command_call(
     client = client,
-    kind = "entity.relation.add",
+    kind = "entity-relation.add",
     ...,
     .auto_fields = auto_fields,
     .body = .body,
@@ -335,7 +335,7 @@ entity_relation_delete <- function(client, domain = NULL, name = NULL, reason = 
   )
   tre_command_call(
     client = client,
-    kind = "entity.relation.delete",
+    kind = "entity-relation.delete",
     ...,
     .auto_fields = auto_fields,
     .body = .body,
@@ -351,7 +351,7 @@ entity_relation_get <- function(client, format = NULL, ..., .body = NULL, .proto
   )
   tre_command_call(
     client = client,
-    kind = "entity.relation.get",
+    kind = "entity-relation.get",
     ...,
     .auto_fields = auto_fields,
     .body = .body,
@@ -367,7 +367,7 @@ entity_relation_instance_add <- function(client, format = NULL, ..., .body = NUL
   )
   tre_command_call(
     client = client,
-    kind = "entity.relation.instance.add",
+    kind = "entity-relation.instance.add",
     ...,
     .auto_fields = auto_fields,
     .body = .body,
@@ -386,7 +386,7 @@ entity_relation_instance_asset_link_add <- function(client, study = NULL, width 
   )
   tre_command_call(
     client = client,
-    kind = "entity.relation.instance.asset.link.add",
+    kind = "entity-relation.instance.asset-link.add",
     ...,
     .auto_fields = auto_fields,
     .body = .body,
@@ -405,7 +405,7 @@ entity_relation_instance_asset_link_list <- function(client, study = NULL, width
   )
   tre_command_call(
     client = client,
-    kind = "entity.relation.instance.asset.link.list",
+    kind = "entity-relation.instance.asset-link.list",
     ...,
     .auto_fields = auto_fields,
     .body = .body,
@@ -424,7 +424,7 @@ entity_relation_instance_dataset_link_add <- function(client, study = NULL, widt
   )
   tre_command_call(
     client = client,
-    kind = "entity.relation.instance.dataset.link.add",
+    kind = "entity-relation.instance.dataset-link.add",
     ...,
     .auto_fields = auto_fields,
     .body = .body,
@@ -443,7 +443,7 @@ entity_relation_instance_dataset_link_get <- function(client, study = NULL, widt
   )
   tre_command_call(
     client = client,
-    kind = "entity.relation.instance.dataset.link.get",
+    kind = "entity-relation.instance.dataset-link.get",
     ...,
     .auto_fields = auto_fields,
     .body = .body,
@@ -462,7 +462,7 @@ entity_relation_instance_dataset_link_list <- function(client, study = NULL, wid
   )
   tre_command_call(
     client = client,
-    kind = "entity.relation.instance.dataset.link.list",
+    kind = "entity-relation.instance.dataset-link.list",
     ...,
     .auto_fields = auto_fields,
     .body = .body,
@@ -481,7 +481,7 @@ entity_relation_instance_ensure <- function(client, study = NULL, dry_run = NULL
   )
   tre_command_call(
     client = client,
-    kind = "entity.relation.instance.ensure",
+    kind = "entity-relation.instance.ensure-from-dataset",
     ...,
     .auto_fields = auto_fields,
     .body = .body,
@@ -497,7 +497,7 @@ entity_relation_instance_get <- function(client, format = NULL, ..., .body = NUL
   )
   tre_command_call(
     client = client,
-    kind = "entity.relation.instance.get",
+    kind = "entity-relation.instance.get",
     ...,
     .auto_fields = auto_fields,
     .body = .body,
@@ -513,7 +513,7 @@ entity_relation_instance_list <- function(client, format = NULL, ..., .body = NU
   )
   tre_command_call(
     client = client,
-    kind = "entity.relation.instance.list",
+    kind = "entity-relation.instance.list",
     ...,
     .auto_fields = auto_fields,
     .body = .body,
@@ -531,7 +531,7 @@ entity_relation_instance_map_add <- function(client, width = NULL, format = NULL
   )
   tre_command_call(
     client = client,
-    kind = "entity.relation.instance.map.add",
+    kind = "entity-relation.instance.map.add",
     ...,
     .auto_fields = auto_fields,
     .body = .body,
@@ -549,7 +549,7 @@ entity_relation_instance_map_get <- function(client, width = NULL, format = NULL
   )
   tre_command_call(
     client = client,
-    kind = "entity.relation.instance.map.get",
+    kind = "entity-relation.instance.map.get",
     ...,
     .auto_fields = auto_fields,
     .body = .body,
@@ -567,7 +567,7 @@ entity_relation_instance_map_list <- function(client, width = NULL, format = NUL
   )
   tre_command_call(
     client = client,
-    kind = "entity.relation.instance.map.list",
+    kind = "entity-relation.instance.map.list",
     ...,
     .auto_fields = auto_fields,
     .body = .body,
@@ -583,7 +583,7 @@ entity_relation_list <- function(client, format = NULL, ..., .body = NULL, .prot
   )
   tre_command_call(
     client = client,
-    kind = "entity.relation.list",
+    kind = "entity-relation.list",
     ...,
     .auto_fields = auto_fields,
     .body = .body,
@@ -603,7 +603,7 @@ entity_relation_search <- function(client, cursor = NULL, limit = NULL, width = 
   )
   tre_command_call(
     client = client,
-    kind = "entity.relation.search",
+    kind = "entity-relation.search",
     ...,
     .auto_fields = auto_fields,
     .body = .body,
@@ -661,7 +661,7 @@ ingest_dataset_datafile <- function(client, study = NULL, ..., .body = NULL, .pr
   )
   tre_command_call(
     client = client,
-    kind = "ingest.dataset.datafile",
+    kind = "ingest.dataset.from-datafile",
     ...,
     .auto_fields = auto_fields,
     .body = .body,
@@ -679,7 +679,7 @@ ingest_dataset_sql <- function(client, study = NULL, format = NULL, ..., .body =
   )
   tre_command_call(
     client = client,
-    kind = "ingest.dataset.sql",
+    kind = "ingest.dataset.from-sql",
     ...,
     .auto_fields = auto_fields,
     .body = .body,

@@ -94,6 +94,67 @@ function To-AsciiText {
     ($ascii -replace '\s{2,}', ' ').Trim()
 }
 
+function Normalize-CommandToken {
+    param([string]$Token)
+
+    $value = (To-AsciiText $Token).ToLowerInvariant().Trim()
+    if (-not $value) {
+        return $null
+    }
+    $value = $value -replace '[^a-z0-9\-\|]', ''
+    $value
+}
+
+function Resolve-ChoiceToken {
+    param(
+        [string]$Token,
+        [string[]]$FunctionTokens
+    )
+
+    if (-not $Token -or $Token.IndexOf('|') -lt 0) {
+        return $Token
+    }
+
+    $choices = @($Token -split '\|' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' })
+    if ($choices.Count -eq 0) {
+        return $Token
+    }
+
+    foreach ($choice in $choices) {
+        $normalizedChoice = ($choice -replace '-', '_')
+        if ($FunctionTokens -contains $normalizedChoice) {
+            return $choice
+        }
+    }
+
+    $choices[0]
+}
+
+function Protocol-KindFromCommand {
+    param(
+        [string]$Command,
+        [string]$Function
+    )
+
+    if (-not $Command) {
+        return ($Function -replace '_', '.')
+    }
+
+    $withoutArgs = (To-AsciiText $Command) -replace '<[^>]+>', '' -replace '\[[^\]]+\]', ''
+    $parts = @($withoutArgs -split '\s+' | ForEach-Object { Normalize-CommandToken $_ } | Where-Object { $_ })
+    if ($parts.Count -eq 0) {
+        return ($Function -replace '_', '.')
+    }
+
+    $functionTokens = @($Function.ToLowerInvariant().Split('_'))
+    $resolved = New-Object System.Collections.Generic.List[string]
+    foreach ($part in $parts) {
+        $resolved.Add((Resolve-ChoiceToken -Token $part -FunctionTokens $functionTokens))
+    }
+
+    ($resolved -join '.')
+}
+
 $rows = @()
 foreach ($cat in $json.categories.PSObject.Properties) {
     foreach ($item in $cat.Value) {
@@ -114,6 +175,14 @@ foreach ($cat in $json.categories.PSObject.Properties) {
 }
 $rows = $rows | Sort-Object Function -Unique
 
+$kindRows = @()
+foreach ($row in $rows) {
+    $kindRows += [pscustomobject]@{
+        Function = $row.Function
+        Kind = (Protocol-KindFromCommand -Command $row.Command -Function $row.Function)
+    }
+}
+
 $categoryFileMap = [ordered]@{
     'Assets, Datafiles, Datasets' = 'assets.R'
     'Authentication, Daemon, Sessions' = 'auth_session.R'
@@ -125,6 +194,13 @@ $categoryFileMap = [ordered]@{
 
 $core = New-Object System.Text.StringBuilder
 [void]$core.AppendLine('TRE_PROTOCOL_VERSION <- "1.0.0"')
+[void]$core.AppendLine('TRE_COMMAND_KIND_MAP <- list(')
+for ($i = 0; $i -lt $kindRows.Count; $i++) {
+    $entry = $kindRows[$i]
+    $suffix = if ($i -eq ($kindRows.Count - 1)) { '' } else { ',' }
+    [void]$core.AppendLine(('  "{0}" = "{1}"{2}' -f $entry.Function, $entry.Kind, $suffix))
+}
+[void]$core.AppendLine(')')
 [void]$core.AppendLine('')
 [void]$core.AppendLine('compact_null_fields <- function(x) {')
 [void]$core.AppendLine('  if (length(x) == 0L) {')
@@ -251,7 +327,7 @@ foreach ($categoryName in $categoryFileMap.Keys) {
     [void]$sb.AppendLine('')
 
     foreach ($row in $categoryRows) {
-        $kind = $row.Function -replace '_', '.'
+        $kind = ($kindRows | Where-Object { $_.Function -eq $row.Function } | Select-Object -First 1).Kind
 
         $params = New-Object System.Collections.Generic.List[object]
         foreach ($arg in (Parse-CommandArgs $row.Command)) {
@@ -335,6 +411,7 @@ foreach ($row in ($rows | Sort-Object Function)) {
 [void]$rdb.AppendLine('}')
 [void]$rdb.AppendLine('\details{')
 [void]$rdb.AppendLine('Wrappers build protocol envelopes through \code{tre_command_call()}, validate protocol-level failures, and return normalized outputs with command output metadata.')
+[void]$rdb.AppendLine('Protocol command kinds are derived from the command metadata column (command words joined with dots, preserving hyphenated command segments).')
 [void]$rdb.AppendLine('}')
 [void]$rdb.AppendLine('\value{')
 [void]$rdb.AppendLine('Each function returns an \code{ahri_tre_wrapper_result} containing normalized \code{data}, full \code{envelope}, payloads, and output/status metadata from the command schema.')

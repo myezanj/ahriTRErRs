@@ -128,6 +128,7 @@ Auto-generated wrappers for TRE protocol commands. Function parameters are infer
 }
 \details{
 Wrappers build protocol envelopes through \code{tre_command_call()}, validate protocol-level failures, and return normalized outputs with command output metadata.
+Protocol command kinds are derived from the command metadata column (command words joined with dots, preserving hyphenated command segments).
 }
 \value{
 Each function returns an \code{ahri_tre_wrapper_result} containing normalized \code{data}, full \code{envelope}, payloads, and output/status metadata from the command schema.
