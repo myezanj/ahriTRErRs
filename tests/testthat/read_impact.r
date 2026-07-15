@@ -118,7 +118,8 @@ cat("[INFO] Using ahritre package wrappers.\n")
 cat("[INFO] AHRI_TRE_RUNTIME_ROOT=", Sys.getenv("AHRI_TRE_RUNTIME_ROOT", unset = ""), "\n", sep = "")
 
 if (!runtime_preflight()) {
-  stop("AHRI TRE runtime files are not installed for the configured artifact root.", call. = FALSE)
+  cat("[WARN] AHRI TRE runtime files are not installed for the configured artifact root; skipping script execution.\n")
+  invisible(FALSE)
 } else {
 
 bootstrap <- tryCatch(
