@@ -509,6 +509,14 @@ tre_command_call <- function(
     }
   }
 
+  if (tre_is_no_live_session_envelope(result$envelope %||% list())) {
+    cli_result <- tre_execute_via_cli(kind = kind, body = body)
+    if (!is.null(cli_result)) {
+      result <- cli_result
+      used_cli <- TRUE
+    }
+  }
+
   if (tre_auto_session_enabled() && tre_is_daemon_connection_envelope(result$envelope %||% list())) {
     if (tre_cli_try_restart_daemon()) {
       if (isTRUE(used_cli)) {
