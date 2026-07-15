@@ -15,9 +15,11 @@ ENV LD_LIBRARY_PATH="${AHRI_TRE_RUNTIME_ROOT}/lib:${LD_LIBRARY_PATH}"
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         ca-certificates \
+        cifs-utils \
         curl \
         git \
         jq \
+        keyutils \
         libcurl4-openssl-dev \
         libssl-dev \
         libxml2-dev \
@@ -26,7 +28,9 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY .devcontainer/install_ahri_tre_runtime.sh /usr/local/bin/install_ahri_tre_runtime
+COPY .devcontainer/devcontainer_startup.sh /usr/local/bin/devcontainer_startup.sh
 COPY .devcontainer/runtime/ /tmp/ahri-tre-runtime-cache/
+RUN chmod +x /usr/local/bin/devcontainer_startup.sh
 RUN --mount=type=secret,id=github_token,required=false \
     GITHUB_TOKEN="$(cat /run/secrets/github_token 2>/dev/null || true)" \
     AHRI_TRE_RELEASE_TAG="${AHRI_TRE_RELEASE_TAG}" \

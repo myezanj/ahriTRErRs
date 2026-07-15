@@ -15,12 +15,16 @@ services:
       secrets:
         - github_token
     init: true
-    command: sleep infinity
+    command: /usr/local/bin/devcontainer_startup.sh
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
     depends_on:
       tre-postgres:
         condition: service_healthy
     env_file:
-      - .env.example
+      - .env
     environment:
       AHRI_TRE_LAKE_CONTAINER_PATH: ${AHRI_TRE_LAKE_CONTAINER_PATH:-/workspaces/ahri-tre-r/.lake}
       TRE_LAKE_PATH: ${AHRI_TRE_LAKE_CONTAINER_PATH:-/workspaces/ahri-tre-r/.lake}
