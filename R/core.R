@@ -183,6 +183,118 @@ tre_extract_data <- function(envelope) {
   envelope
 }
 
+tre_is_invalid_request_envelope <- function(envelope) {
+  if (is.null(envelope) || !is.list(envelope)) {
+    return(FALSE)
+  }
+  if (!identical(envelope$kind %||% "", "protocol.invalid_request")) {
+    return(FALSE)
+  }
+  message <- envelope$error$message %||% envelope$message %||% ""
+  grepl("request envelope is invalid", message, fixed = TRUE)
+}
+
+tre_cli_binary <- function() {
+  runtime_root <- Sys.getenv("AHRI_TRE_RUNTIME_ROOT", unset = "")
+  if (!nzchar(runtime_root)) {
+    runtime_root <- "/opt/ahri-tre-runtime"
+  }
+  path <- file.path(normalizePath(path.expand(runtime_root), mustWork = FALSE), "bin", "ahri-tre")
+  if (!file.exists(path)) {
+    return(NULL)
+  }
+  path
+}
+
+tre_parse_first_json_object <- function(lines) {
+  if (length(lines) == 0L) {
+    return(NULL)
+  }
+  text <- paste(lines, collapse = "\n")
+  start <- regexpr("\\{", text)
+  if (start[[1]] < 1L) {
+    return(NULL)
+  }
+  json_text <- substr(text, start[[1]], nchar(text))
+  parsed <- try(jsonlite::fromJSON(json_text, simplifyVector = FALSE), silent = TRUE)
+  if (inherits(parsed, "try-error")) {
+    return(NULL)
+  }
+  parsed
+}
+
+tre_cli_args_from_body <- function(kind, body) {
+  tokens <- strsplit(kind, "\\.", fixed = FALSE)[[1]]
+  args <- as.list(tokens)
+
+  if (length(body) == 0L) {
+    return(unlist(args, use.names = FALSE))
+  }
+
+  for (key in names(body)) {
+    value <- body[[key]]
+    if (is.null(value)) {
+      next
+    }
+
+    cli_key <- gsub("_", "-", key, fixed = TRUE)
+    flag <- paste0("--", cli_key)
+
+    if (is.logical(value) && length(value) == 1L) {
+      if (isTRUE(value)) {
+        args <- c(args, flag)
+      }
+      next
+    }
+
+    if (length(value) == 0L || is.list(value)) {
+      next
+    }
+
+    for (item in as.character(value)) {
+      args <- c(args, flag, item)
+    }
+  }
+
+  unlist(args, use.names = FALSE)
+}
+
+tre_execute_via_cli <- function(kind, body) {
+  cli_bin <- tre_cli_binary()
+  if (is.null(cli_bin)) {
+    return(NULL)
+  }
+
+  runtime_root <- Sys.getenv("AHRI_TRE_RUNTIME_ROOT", unset = "")
+  if (!nzchar(runtime_root)) {
+    runtime_root <- "/opt/ahri-tre-runtime"
+  }
+
+  runtime_lib <- file.path(normalizePath(path.expand(runtime_root), mustWork = FALSE), "lib")
+  ld_path <- Sys.getenv("LD_LIBRARY_PATH", unset = "")
+  env <- c(paste0("LD_LIBRARY_PATH=", paste(c(runtime_lib, ld_path), collapse = ":")))
+  args <- tre_cli_args_from_body(kind, body)
+
+  output <- suppressWarnings(system2(cli_bin, args = args, stdout = TRUE, stderr = TRUE, env = env))
+  parsed <- tre_parse_first_json_object(output)
+  if (is.null(parsed)) {
+    return(NULL)
+  }
+
+  if (isTRUE(parsed$ok)) {
+    envelope <- list(ok = TRUE, kind = parsed$command %||% kind, data = parsed$data %||% list())
+  } else {
+    message <- parsed$error$message %||% parsed$message %||% "CLI command failed"
+    envelope <- list(
+      ok = FALSE,
+      kind = parsed$command %||% kind,
+      error = list(code = parsed$code %||% "cli_error", message = message)
+    )
+  }
+
+  list(envelope = envelope, payloads = list())
+}
+
 tre_normalize_output <- function(result, output_label = NULL, status_and_purpose = NULL, function_name = NULL) {
   envelope <- result$envelope %||% list()
   if (!tre_result_ok(envelope)) {
@@ -231,6 +343,13 @@ tre_command_call <- function(
       protocol_version = .protocol_version
     )
   )
+
+  if (tre_is_invalid_request_envelope(result$envelope %||% list())) {
+    cli_result <- tre_execute_via_cli(kind = kind, body = body)
+    if (!is.null(cli_result)) {
+      result <- cli_result
+    }
+  }
 
   tre_normalize_output(
     result = result,
