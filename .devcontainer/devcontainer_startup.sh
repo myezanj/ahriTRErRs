@@ -17,13 +17,23 @@ mount_tre_lake_if_configured() {
     return 0
   fi
 
-  sudo mkdir -p "${lake_dst}"
+  local as_root=""
+  if [[ "$(id -u)" -eq 0 ]]; then
+    as_root=""
+  elif command -v sudo >/dev/null 2>&1; then
+    as_root="sudo"
+  else
+    echo "[WARN] TRE Samba mount skipped: requires root privileges or sudo."
+    return 0
+  fi
+
+  ${as_root} mkdir -p "${lake_dst}"
 
   local uid gid
   uid="$(id -u)"
   gid="$(id -g)"
 
-  if sudo mount -t cifs "${lake_src}" "${lake_dst}" \
+  if ${as_root} mount -t cifs "${lake_src}" "${lake_dst}" \
       -o "username=${samba_user},password=${samba_pass},vers=3.0,uid=${uid},gid=${gid},file_mode=0664,dir_mode=0775,noperm"; then
     echo "[INFO] TRE Samba mount successful: ${lake_src} -> ${lake_dst}."
   else
