@@ -91,6 +91,33 @@ Run full package checks before publishing changes:
 devtools::check(document = FALSE, error_on = "warning")
 ```
 
+## Wrapper Return Values
+
+All generated command wrappers return an `ahri_tre_wrapper_result` object.
+
+Key fields:
+
+- `data`: parsed R object for the command response payload.
+- `object`: alias of `data` for explicit object-oriented access.
+- `data_frame`: best-effort tabular projection when payload content is
+  tabular (`rows`, `items`, `datasets`, `studies`, etc.).
+- `envelope`: original protocol envelope.
+- `payloads`: attached binary payload descriptors (for example Arrow IPC).
+
+Example:
+
+```r
+result <- dataset_list(client, format = "json")
+
+# Native R object
+result$object
+
+# Tabular access when available
+if (!is.null(result$data_frame)) {
+  print(utils::head(result$data_frame))
+}
+```
+
 ## Release Hygiene
 
 - Record user-visible changes in `NEWS.md`.
