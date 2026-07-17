@@ -10,3 +10,4 @@
 ^release($|/)
 ^[.]runtime($|/)
 ^ahriTRErRs[.]Rcheck($|/)
+^profile[.]env$
