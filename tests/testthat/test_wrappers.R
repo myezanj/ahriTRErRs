@@ -164,3 +164,27 @@ test_that("wrapper data can be forced to object mode", {
   expect_true(is.data.frame(captured$data_frame))
   expect_identical(captured$data$rows[[1]]$id[[1]], 4L)
 })
+
+test_that("wrapper data can be forced to json mode", {
+  withr::local_options(list(ahriTRErRs.return_mode = "json"))
+
+  captured <- testthat::with_mocked_bindings(
+    execute_json = function(client, request) {
+      list(
+        envelope = list(
+          ok = TRUE,
+          kind = request$kind,
+          data = list(rows = list(list(id = 5L, label = "epsilon")))
+        ),
+        payloads = list()
+      )
+    },
+    dataset_list(list(client = "ok"), format = "json")
+  )
+
+  expect_true(is.character(captured$data))
+  expect_length(captured$data, 1L)
+  expect_match(captured$data, '"rows"', fixed = TRUE)
+  expect_true(is.list(captured$object))
+  expect_true(is.data.frame(captured$data_frame))
+})

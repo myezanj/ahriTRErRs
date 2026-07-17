@@ -489,10 +489,20 @@ tre_wrapper_return_mode <- function() {
   if (mode %in% c("data.frame", "dataframe", "df")) {
     return("data.frame")
   }
-  if (mode %in% c("object", "raw", "json")) {
+  if (mode %in% c("object", "raw")) {
     return("object")
   }
+  if (mode %in% c("json", "string")) {
+    return("json")
+  }
   "data.frame"
+}
+
+tre_coerce_json <- function(raw_data, object) {
+  if (is.character(raw_data) && length(raw_data) == 1L && nzchar(raw_data)) {
+    return(raw_data)
+  }
+  jsonlite::toJSON(object, auto_unbox = TRUE, null = "null")
 }
 
 tre_normalize_output <- function(result, output_label = NULL, status_and_purpose = NULL, function_name = NULL) {
@@ -509,7 +519,12 @@ tre_normalize_output <- function(result, output_label = NULL, status_and_purpose
   object <- tre_coerce_r_object(raw_data)
   data_frame <- tre_coerce_data_frame(object)
   mode <- tre_wrapper_return_mode()
-  data <- if (identical(mode, "data.frame") && !is.null(data_frame)) data_frame else object
+  data <- switch(
+    mode,
+    "json" = tre_coerce_json(raw_data, object),
+    "object" = object,
+    if (!is.null(data_frame)) data_frame else object
+  )
 
   structure(
     list(
