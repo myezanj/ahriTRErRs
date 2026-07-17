@@ -1,48 +1,42 @@
 suppressPackageStartupMessages(library(ahriTRErRs))
-if (!("opendatastore_oauth" %in% getNamespaceExports("ahriTRErRs"))) {
-  cat("[INFO] This legacy example uses datastore APIs not exported by the current ahriTRErRs build.\n")
-  cat("[INFO] Skipping execution.\n")
-  quit(save = "no", status = 0L)
+if (file.exists('.env')) readRenviron('.env')
+
+runtime_candidates <- unique(c(
+  Sys.getenv('AHRI_TRE_RUNTIME_ROOT', '/opt/ahri-tre-runtime'),
+  file.path(getwd(), '.runtime', 'ahri-tre-runtime'),
+  '/workspaces/ahriTRErRs/.runtime/ahri-tre-runtime'
+))
+runtime_roots <- normalizePath(path.expand(runtime_candidates), mustWork = FALSE)
+runtime_manifests <- file.path(runtime_roots, 'share', 'ahri-tre', 'manifest.json')
+runtime_hits <- runtime_roots[file.exists(runtime_manifests)]
+runtime_root <- if (length(runtime_hits) > 0L) runtime_hits[[1]] else runtime_roots[[1]]
+manifest <- file.path(runtime_root, 'share', 'ahri-tre', 'manifest.json')
+Sys.setenv(AHRI_TRE_RUNTIME_ROOT = runtime_root)
+if (!file.exists(manifest)) {
+  cat('[INFO] Runtime manifest not found. Skipping.\n')
+  quit(save = 'no', status = 0L)
 }
 
-library(ahriTRErRs)
-#if (file.exists(".env")) {ahriTRErRs:::.load_dotenv_file(".env", overwrite = FALSE)}
+client <- AhriTreClient()
+on.exit(close(client), add = TRUE)
 
-cat("[INFO] Starting OAuth connection to DataStore...\n")
-datastore <- opendatastore_oauth(
-  server = Sys.getenv("PGHOST", unset = "localhost"),
-  dbname = "pilot_tre",
-  lake_data = "/mnt/test_lake/pilot_tre",
-  lake_db = Sys.getenv("TRE_LAKE_DB", unset = "pilot_tre_catalog"),
-  lake_user = Sys.getenv("LAKE_USER", unset = "ducklake_user"),
-  lake_password = Sys.getenv("LAKE_PASSWORD", unset = ""),
-  oauth_config = list(session = ahriTRErRs::cached_oauth_options_from_env()),
-  migrate_catalog = TRUE
+cat('[INFO] Runtime status\n')
+print(runtime_status())
+
+status <- tryCatch(
+  auth_status(client, format = 'json'),
+  error = function(e) NULL
 )
-
-cat("Store connected: ", !is.null(datastore$store), "\n", sep = "")
-cat("Lake connected: ", !is.null(datastore$lake), "\n", sep = "")
-
-studies <- get_studies(datastore)
-cat("[INFO] Studies found: ", nrow(studies), "\n", sep = "")
-print(utils::head(studies, 5))
-
-study <- get_study(datastore, "HDSS_example")
-if (nrow(study) == 0 && nrow(studies) > 0) {
-  study <- studies[1, , drop = FALSE]
+if (is.null(status)) {
+  cat('[INFO] auth_status is not supported by this runtime. Continuing.\n')
+} else {
+  cat('[INFO] auth_status: ', status$status, '\n', sep = '')
 }
 
-datasets <- get_study_datasets(datastore, study)
-cat("[INFO] Datasets found for selected study: ", nrow(datasets), "\n", sep = "")
-
-if (nrow(datasets) > 0) {
-  dataset <- datasets[1, , drop = FALSE]
-  cat("[INFO] Reading dataset: ", as.character(dataset$name[[1]]), "\n", sep = "")
-  rows <- read_dataset(datastore, dataset, limit = 10)
-  print(rows)
-}
-
-if (!is.null(datastore)) {
-  cat("\nClosing DataStore\n")
-  closedatastore(datastore)
+studies <- study_list(client, format = 'json')$data
+if (is.data.frame(studies)) {
+  cat('[INFO] Studies found: ', nrow(studies), '\n', sep = '')
+  print(utils::head(studies, 5L))
+} else {
+  print(studies)
 }

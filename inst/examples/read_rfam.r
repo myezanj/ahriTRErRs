@@ -61,11 +61,8 @@ if (!file.exists(manifest)) {
     }
 
     cat("[INFO] Dataset entries found: ", length(dataset_names), "\n", sep = "")
-    if (length(dataset_names) > 0L) {
-      for (i in seq_len(min(10L, length(dataset_names)))) {
-        cat("[INFO] Dataset ", i, ": ", dataset_names[[i]], "\n", sep = "")
-      }
+    for (i in seq_len(min(10L, length(dataset_names)))) {
+      cat("[INFO] Dataset ", i, ": ", dataset_names[[i]], "\n", sep = "")
     }
-
   }
 }
