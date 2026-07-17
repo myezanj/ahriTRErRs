@@ -17,11 +17,9 @@ env_get_first <- function(keys, default = "") {
 
 initialize_release_env <- function() {
     # Avoid configure-time duckdb source builds during release unless explicitly requested.
-    skip_auto_duckdb <- env_get_first(c("AHRI_TRE_SKIP_AUTO_DUCKDB_INSTALL", "AHRITRE_SKIP_AUTO_DUCKDB_INSTALL", "AHRITRER_SKIP_AUTO_DUCKDB_INSTALL"), default = "")
+    skip_auto_duckdb <- env_get_first(c("AHRI_TRE_SKIP_AUTO_DUCKDB_INSTALL"), default = "")
     if (!nzchar(skip_auto_duckdb)) {
         Sys.setenv(AHRI_TRE_SKIP_AUTO_DUCKDB_INSTALL = "1")
-        Sys.setenv(AHRITRE_SKIP_AUTO_DUCKDB_INSTALL = "1")
-        Sys.setenv(AHRITRER_SKIP_AUTO_DUCKDB_INSTALL = "1")
         cat("[INFO] Defaulting AHRI_TRE_SKIP_AUTO_DUCKDB_INSTALL=1 for release build stability.\n")
     } else {
         cat("[INFO] Respecting AHRI_TRE_SKIP_AUTO_DUCKDB_INSTALL=", skip_auto_duckdb, "\n", sep = "")
@@ -295,8 +293,6 @@ if (length(cli_args) > 0) {
     }
     if (!("--install" %in% cli_args)) {
         Sys.setenv(AHRI_TRE_AUTO_INSTALL_RELEASE = "false")
-        Sys.setenv(AHRITRE_AUTO_INSTALL_RELEASE = "false")
-        Sys.setenv(AHRITRER_AUTO_INSTALL_RELEASE = "false")
     }
 }
 
@@ -464,8 +460,8 @@ stage_packaged_local_pg <- function() {
 
 print_ducklake_runtime_diagnostics <- function() {
     cat("\n[INFO] DuckLake runtime settings:\n")
-    cat("  AHRI_TRE_DUCKLAKE_AUTO_MIGRATION=", env_get_first(c("AHRI_TRE_DUCKLAKE_AUTO_MIGRATION", "AHRITRE_DUCKLAKE_AUTO_MIGRATION", "AHRITRER_DUCKLAKE_AUTO_MIGRATION"), default = "<unset>"), "\n", sep = "")
-    cat("  AHRI_TRE_SKIP_DUCKLAKE_ATTACH=", env_get_first(c("AHRI_TRE_SKIP_DUCKLAKE_ATTACH", "AHRITRE_SKIP_DUCKLAKE_ATTACH", "AHRITRER_SKIP_DUCKLAKE_ATTACH"), default = "<unset>"), "\n", sep = "")
+    cat("  AHRI_TRE_DUCKLAKE_AUTO_MIGRATION=", env_get_first(c("AHRI_TRE_DUCKLAKE_AUTO_MIGRATION"), default = "<unset>"), "\n", sep = "")
+    cat("  AHRI_TRE_SKIP_DUCKLAKE_ATTACH=", env_get_first(c("AHRI_TRE_SKIP_DUCKLAKE_ATTACH"), default = "<unset>"), "\n", sep = "")
 
     duckdb_version <- tryCatch(
         as.character(utils::packageVersion("duckdb")),
@@ -716,7 +712,7 @@ cat("  ✓ Cleaned src/*.{o,so,dll}\n")
 
 print_step("Building source tarball (.tar.gz) into ./release")
 tarball <- NULL
-use_devtools_tarball <- tolower(trimws(env_get_first(c("AHRI_TRE_USE_DEVTOOLS_TARBALL", "AHRITRE_USE_DEVTOOLS_TARBALL", "AHRITRER_USE_DEVTOOLS_TARBALL"), default = "false"))) %in% c("1", "true", "yes", "on")
+use_devtools_tarball <- tolower(trimws(env_get_first(c("AHRI_TRE_USE_DEVTOOLS_TARBALL"), default = "false"))) %in% c("1", "true", "yes", "on")
 
 run_base_r_build <- function() {
     cat("  Building source tarball with staged R CMD build...\n")
@@ -936,7 +932,7 @@ cat("\n")
 
 # Automatically install the freshly built artifact
 print_step("Installing package from freshly built artifact")
-auto_install_release <- tolower(trimws(env_get_first(c("AHRI_TRE_AUTO_INSTALL_RELEASE", "AHRITRE_AUTO_INSTALL_RELEASE", "AHRITRER_AUTO_INSTALL_RELEASE"), default = "true"))) %in% c("1", "true", "yes", "on")
+auto_install_release <- tolower(trimws(env_get_first(c("AHRI_TRE_AUTO_INSTALL_RELEASE"), default = "true"))) %in% c("1", "true", "yes", "on")
 
 install_target <- NULL
 install_type <- "source"
