@@ -483,22 +483,16 @@ tre_cli_try_restart_daemon <- function() {
   isTRUE(start_json$ok)
 }
 
-tre_should_prefer_data_frame <- function(object, data_frame) {
-  if (is.null(data_frame)) {
-    return(FALSE)
+tre_wrapper_return_mode <- function() {
+  mode <- getOption("ahriTRErRs.return_mode", Sys.getenv("AHRI_TRE_R_RETURN_MODE", unset = "data.frame"))
+  mode <- tolower(trimws(as.character(mode[[1]] %||% "data.frame")))
+  if (mode %in% c("data.frame", "dataframe", "df")) {
+    return("data.frame")
   }
-  if (is.data.frame(object)) {
-    return(TRUE)
+  if (mode %in% c("object", "raw", "json")) {
+    return("object")
   }
-  if (!is.list(object)) {
-    return(FALSE)
-  }
-
-  tabular_keys <- c(
-    "rows", "items", "studies", "datasets", "datafiles",
-    "entities", "domains", "variables", "metadata"
-  )
-  any(tabular_keys %in% names(object))
+  "data.frame"
 }
 
 tre_normalize_output <- function(result, output_label = NULL, status_and_purpose = NULL, function_name = NULL) {
@@ -514,7 +508,8 @@ tre_normalize_output <- function(result, output_label = NULL, status_and_purpose
   raw_data <- tre_extract_data(envelope)
   object <- tre_coerce_r_object(raw_data)
   data_frame <- tre_coerce_data_frame(object)
-  data <- if (tre_should_prefer_data_frame(object, data_frame)) data_frame else object
+  mode <- tre_wrapper_return_mode()
+  data <- if (identical(mode, "data.frame") && !is.null(data_frame)) data_frame else object
 
   structure(
     list(

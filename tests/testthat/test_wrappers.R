@@ -122,3 +122,45 @@ test_that("wrapper output exposes data.frame when payload is tabular list", {
   expect_identical(captured$data_frame$id[[1]], 2L)
   expect_identical(captured$data_frame$label[[1]], "beta")
 })
+
+test_that("wrapper data defaults to data.frame when coercion is possible", {
+  captured <- testthat::with_mocked_bindings(
+    execute_json = function(client, request) {
+      list(
+        envelope = list(
+          ok = TRUE,
+          kind = request$kind,
+          data = list(rows = list(list(id = 3L, label = "gamma")))
+        ),
+        payloads = list()
+      )
+    },
+    dataset_list(list(client = "ok"), format = "json")
+  )
+
+  expect_true(is.data.frame(captured$data))
+  expect_identical(captured$data$id[[1]], 3L)
+  expect_identical(captured$data$label[[1]], "gamma")
+})
+
+test_that("wrapper data can be forced to object mode", {
+  withr::local_options(list(ahriTRErRs.return_mode = "object"))
+
+  captured <- testthat::with_mocked_bindings(
+    execute_json = function(client, request) {
+      list(
+        envelope = list(
+          ok = TRUE,
+          kind = request$kind,
+          data = list(rows = list(list(id = 4L, label = "delta")))
+        ),
+        payloads = list()
+      )
+    },
+    dataset_list(list(client = "ok"), format = "json")
+  )
+
+  expect_true(is.list(captured$data))
+  expect_true(is.data.frame(captured$data_frame))
+  expect_identical(captured$data$rows[[1]]$id[[1]], 4L)
+})
