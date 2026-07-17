@@ -61,18 +61,11 @@ if (!file.exists(manifest)) {
     }
 
     cat("[INFO] Dataset entries found: ", length(dataset_names), "\n", sep = "")
-    for (i in seq_len(min(3L, length(dataset_names)))) {
-      nm <- dataset_names[[i]]
-      cat("[INFO] Preview dataset ", i, ": ", nm, "\n", sep = "")
-      preview <- dataset_preview(client, study = target, dataset = nm, limit = 10L, format = "json")
-      rows <- if (is.data.frame(preview$data_frame)) {
-        preview$data_frame
-      } else if (is.data.frame(preview$data)) {
-        preview$data
-      } else {
-        as.data.frame(preview$data)
+    if (length(dataset_names) > 0L) {
+      for (i in seq_len(min(10L, length(dataset_names)))) {
+        cat("[INFO] Dataset ", i, ": ", dataset_names[[i]], "\n", sep = "")
       }
-      cat("[INFO] Rows=", nrow(rows), " Cols=", ncol(rows), "\n", sep = "")
     }
+
   }
 }

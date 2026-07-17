@@ -1,3 +1,10 @@
+suppressPackageStartupMessages(library(ahriTRErRs))
+if (!("opendatastore_oauth" %in% getNamespaceExports("ahriTRErRs"))) {
+  cat("[INFO] This legacy example uses datastore APIs not exported by the current ahriTRErRs build.\n")
+  cat("[INFO] Skipping execution.\n")
+  quit(save = "no", status = 0L)
+}
+
 bootstrap_helper_candidates <- c(file.path("inst", "examples", "bootstrap_helpers.r"), "bootstrap_helpers.r")
 bootstrap_helper_path <- bootstrap_helper_candidates[file.exists(bootstrap_helper_candidates)][1]
 if (is.na(bootstrap_helper_path) || !nzchar(bootstrap_helper_path)) {

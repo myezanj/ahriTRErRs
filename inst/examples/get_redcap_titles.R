@@ -1,9 +1,13 @@
-# Install if needed
-# install.packages("httr")
-# install.packages("jsonlite")
+# Install dependencies if needed.
+if (!requireNamespace("httr", quietly = TRUE)) {
+  install.packages("httr", repos = "https://cloud.r-project.org")
+}
+if (!requireNamespace("jsonlite", quietly = TRUE)) {
+  install.packages("jsonlite", repos = "https://cloud.r-project.org")
+}
 
-library(httr)
-library(jsonlite)
+suppressPackageStartupMessages(library(httr))
+suppressPackageStartupMessages(library(jsonlite))
 
 # --- CONFIG ---
 # Use environment variables instead of hardcoding credentials.
@@ -14,7 +18,8 @@ redcap_url <- Sys.getenv("REDCAP_API_URL", unset = "https://population.ahri.org/
 api_token <- Sys.getenv("REDCAP_API_TOKEN", unset = "")
 
 if (!nzchar(api_token)) {
-  stop("Missing REDCAP_API_TOKEN environment variable.")
+  cat("[INFO] REDCAP_API_TOKEN is not set. Skipping example.\n")
+  quit(save = "no", status = 0L)
 }
 
 # --- API CALL ---

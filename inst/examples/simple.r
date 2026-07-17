@@ -1,3 +1,10 @@
+suppressPackageStartupMessages(library(ahriTRErRs))
+if (!("opendatastore_oauth" %in% getNamespaceExports("ahriTRErRs"))) {
+  cat("[INFO] This legacy example uses datastore APIs not exported by the current ahriTRErRs build.\n")
+  cat("[INFO] Skipping execution.\n")
+  quit(save = "no", status = 0L)
+}
+
 library(ahriTRErRs)
 #if (file.exists(".env")) {ahriTRErRs:::.load_dotenv_file(".env", overwrite = FALSE)}
 

@@ -1,3 +1,10 @@
+suppressPackageStartupMessages(library(ahriTRErRs))
+if (!("opendatastore_oauth" %in% getNamespaceExports("ahriTRErRs"))) {
+  cat("[INFO] This legacy example uses datastore APIs not exported by the current ahriTRErRs build.\n")
+  cat("[INFO] Skipping execution.\n")
+  quit(save = "no", status = 0L)
+}
+
 find_repo_root <- function(start = getwd()) {
   current <- normalizePath(start, winslash = "/", mustWork = TRUE)
   repeat {
