@@ -72,7 +72,12 @@ ensure_human_host_participants <- function(ds, domain, study, dataset) {
 		stop("Dataset variable not found: Participant_ID")
 	}
 
-	rows <- read_dataset(ds, dataset)
+	rows <- read_dataset(
+		ds,
+		study_name = study$name,
+		dataset_name = dataset$name[[1]],
+		include_versions = TRUE
+	)
 	participant_ids <- sort(unique(trimws(as.character(rows$Participant_ID))))
 	participant_ids <- participant_ids[nzchar(participant_ids) & !is.na(participant_ids)]
 

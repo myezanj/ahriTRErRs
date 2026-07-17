@@ -255,37 +255,8 @@ datafile_search <- function(client, study = NULL, cursor = NULL, limit = NULL, w
 }
 
 normalize_dataset_data_records <- function(value) {
-  if (is.null(value)) {
-    return(data.frame())
-  }
-  if (is.data.frame(value)) {
-    return(value)
-  }
-  if (is.character(value) && length(value) == 1L && nzchar(value)) {
-    parsed <- try(jsonlite::fromJSON(value, simplifyDataFrame = TRUE), silent = TRUE)
-    if (!inherits(parsed, "try-error")) {
-      return(normalize_dataset_data_records(parsed))
-    }
-  }
-  if (is.list(value)) {
-    for (candidate in c("items", "rows", "data", "result", "output", "body", "datasets")) {
-      if (!is.null(value[[candidate]])) {
-        return(normalize_dataset_data_records(value[[candidate]]))
-      }
-    }
-
-    as_df <- try(
-      jsonlite::fromJSON(
-        jsonlite::toJSON(value, auto_unbox = TRUE),
-        simplifyDataFrame = TRUE
-      ),
-      silent = TRUE
-    )
-    if (!inherits(as_df, "try-error") && is.data.frame(as_df)) {
-      return(as_df)
-    }
-  }
-  data.frame()
+  # Reuse read_dataset's normalization helper to keep parsing behavior consistent.
+  normalize_dataset_records(value)
 }
 
 extract_dataset_data_rows <- function(result) {
