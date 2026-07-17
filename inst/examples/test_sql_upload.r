@@ -13,5 +13,6 @@ if (!nzchar(study_name) || !nzchar(domain_name) || !nzchar(dataset_name) || !nzc
 client <- AhriTreClient()
 on.exit(close(client), add = TRUE)
 res <- ingest_dataset_sql(client, study = study_name, domain = domain_name, dataset = dataset_name, sql = sql_text, format = 'json')
-cat('[INFO] ingest_dataset_sql status: ', res$status, '\n', sep = '')
+status_value <- if (!is.null(res$envelope$status) && nzchar(as.character(res$envelope$status[[1]]))) as.character(res$envelope$status[[1]]) else 'ok'
+cat('[INFO] ingest_dataset_sql status: ', status_value, '\n', sep = '')
 print(res$data)

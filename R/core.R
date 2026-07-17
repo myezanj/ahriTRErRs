@@ -237,11 +237,10 @@ tre_is_invalid_request_envelope <- function(envelope) {
   if (is.null(envelope) || !is.list(envelope)) {
     return(FALSE)
   }
-  if (!identical(envelope$kind %||% "", "protocol.invalid_request")) {
-    return(FALSE)
-  }
   message <- envelope$error$message %||% envelope$message %||% ""
-  grepl("request envelope is invalid", message, fixed = TRUE)
+  (identical(envelope$kind %||% "", "protocol.invalid_request") &&
+    grepl("request envelope is invalid", message, fixed = TRUE)) ||
+    grepl("protocol request kind is not supported", message, fixed = TRUE)
 }
 
 tre_is_no_live_session_envelope <- function(envelope) {
@@ -331,7 +330,7 @@ tre_cli_args_from_body <- function(kind, body) {
     }
 
     for (item in as.character(value)) {
-      args <- c(args, flag, item)
+      args <- c(args, flag, shQuote(item, type = "sh"))
     }
   }
 

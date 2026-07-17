@@ -20,5 +20,6 @@ res <- datafile_delete(
   yes = TRUE,
   format = 'json'
 )
-cat('[INFO] datafile_delete dry-run status: ', res$status, '\n', sep = '')
+status_value <- if (!is.null(res$envelope$status) && nzchar(as.character(res$envelope$status[[1]]))) as.character(res$envelope$status[[1]]) else 'ok'
+cat('[INFO] datafile_delete dry-run status: ', status_value, '\n', sep = '')
 print(res$data)

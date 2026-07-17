@@ -27,5 +27,6 @@ if (is.null(res)) {
 	cat('[INFO] auth_status is not supported by this runtime. Skipping.\n')
 	quit(save = 'no', status = 0L)
 }
-cat('[INFO] auth_status status: ', res$status, '\n', sep = '')
+status_value <- if (!is.null(res$envelope$status) && nzchar(as.character(res$envelope$status[[1]]))) as.character(res$envelope$status[[1]]) else 'ok'
+cat('[INFO] auth_status status: ', status_value, '\n', sep = '')
 print(res$data)

@@ -1,5 +1,6 @@
 suppressPackageStartupMessages(library(ahriTRErRs))
 if (file.exists(".env")) readRenviron(".env")
+options(ahriTRErRs.return_mode = "data.frame")
 
 runtime_candidates <- unique(c(
   Sys.getenv("AHRI_TRE_RUNTIME_ROOT", "/opt/ahri-tre-runtime"),

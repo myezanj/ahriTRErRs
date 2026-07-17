@@ -74,6 +74,26 @@ runtime archive under `.devcontainer/runtime/`. The installer attempts local
 archive install before GitHub release download and will verify checksums when
 an adjacent `.sha256` or `.sha256sum` file is present.
 
+## Runtime Ingest Caveats
+
+Current runtime behavior in this workspace matters for the ingest examples:
+
+- `ingest_dataset_sql()` now falls back correctly through the package layer,
+  but the active runtime/CLI still reports `workflow not implemented` for the
+  `ingest dataset from-sql` path with source connection inputs.
+- `ingest_dataset_table()` and `ingest_datafile()` are supported wrapper
+  paths, but both currently fail later with `lake filesystem operation failed:
+  Permission denied (os error 13)` when the backend cannot write staged data
+  into the configured lake.
+- `inst/examples/insert_rfam.r` is intentionally on the supported staged-file
+  path only. It expects staged RFAM files under `AHRI_TRE_TABLE_DIR` or the
+  example's auto-discovered directories, and exits non-zero when no input files
+  are present.
+- `inst/examples/insert_rfamseq_chunks.r` and
+  `inst/examples/ingest_file_example.r` are also aligned to supported
+  package-function ingest paths and now surface backend lake permission errors
+  explicitly.
+
 ## Next Steps
 
 - Keep CI contract smoke coverage in sync with runtime release updates and

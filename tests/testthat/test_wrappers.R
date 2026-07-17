@@ -82,6 +82,42 @@ test_that("protocol failures are converted to ahri_tre_protocol_error", {
   )
 })
 
+test_that("unsupported protocol kinds fall back to CLI", {
+  captured <- testthat::with_mocked_bindings(
+    execute_json = function(client, request) {
+      list(
+        envelope = list(
+          ok = FALSE,
+          kind = "protocol.unsupported",
+          error = list(message = "protocol request kind is not supported")
+        ),
+        payloads = list()
+      )
+    },
+    tre_execute_via_cli = function(kind, body) {
+      list(
+        envelope = list(ok = TRUE, kind = kind, data = list(rows = list(list(id = 7L, label = "zeta")))),
+        payloads = list()
+      )
+    },
+    dataset_list(list(client = "ok"), format = "json")
+  )
+
+  expect_true(is.data.frame(captured$data))
+  expect_identical(captured$data$id[[1]], 7L)
+  expect_identical(captured$data$label[[1]], "zeta")
+})
+
+test_that("CLI fallback quotes shell-sensitive argument values", {
+  args <- ahriTRErRs:::tre_cli_args_from_body(
+    "ingest.dataset.from-sql",
+    list(sql = "select * from Rfam.family", description = "mysql select all family")
+  )
+
+  expect_identical(args[[5]], "'select * from Rfam.family'")
+  expect_identical(args[[7]], "'mysql select all family'")
+})
+
 test_that("wrapper output coerces JSON string data to R objects", {
   captured <- testthat::with_mocked_bindings(
     execute_json = function(client, request) {
