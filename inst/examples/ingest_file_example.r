@@ -4,14 +4,7 @@ if (is.na(bootstrap_helper_path) || !nzchar(bootstrap_helper_path)) {
 	stop("Could not locate inst/examples/bootstrap_helpers.r")
 }
 source(bootstrap_helper_path, local = TRUE)
-if (exists("ensure_ahriTRErRs_available", mode = "function")) {
-	ensure_ahriTRErRs_available()
-} else if (exists("ensure_ahriTREr_available", mode = "function")) {
-	# Backward-compatible fallback when older helper scripts are in use.
-	ensure_ahriTREr_available()
-} else {
-	stop("Could not locate a package bootstrap helper function.")
-}
+ensure_ahriTRErRs_available()
 
 start_time <- Sys.time()
 cat("Execution started at:", format(start_time, "%Y-%m-%d %H:%M:%S %Z"), "\n")
@@ -72,12 +65,7 @@ ensure_human_host_participants <- function(ds, domain, study, dataset) {
 		stop("Dataset variable not found: Participant_ID")
 	}
 
-	rows <- read_dataset(
-		ds,
-		study_name = study$name,
-		dataset_name = dataset$name[[1]],
-		include_versions = TRUE
-	)
+	rows <- read_dataset(ds, dataset)
 	participant_ids <- sort(unique(trimws(as.character(rows$Participant_ID))))
 	participant_ids <- participant_ids[nzchar(participant_ids) & !is.na(participant_ids)]
 
@@ -169,8 +157,8 @@ ensure_human_host_participants <- function(ds, domain, study, dataset) {
 	invisible(human_host)
 }
 
-#file_path <- "inst/extdata/live-births-england-and-wales-1938-2024.csv"
-file_path <- "inst/extdata/sctb_bio_df_collated_data.csv"
+#file_path <- "inst/data/live-births-england-and-wales-1938-2024.csv"
+file_path <- "inst/data/sctb_bio_df_collated_data_2026_05_30.csv"
 
 if (!file.exists(file_path)) {
 	stop("File does not exist: ", file_path)
