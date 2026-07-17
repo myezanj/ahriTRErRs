@@ -183,6 +183,56 @@ tre_extract_data <- function(envelope) {
   envelope
 }
 
+tre_coerce_r_object <- function(value) {
+  if (is.null(value) || is.data.frame(value)) {
+    return(value)
+  }
+
+  if (is.character(value) && length(value) == 1L && nzchar(value)) {
+    parsed <- try(jsonlite::fromJSON(value, simplifyDataFrame = TRUE), silent = TRUE)
+    if (!inherits(parsed, "try-error")) {
+      return(parsed)
+    }
+  }
+
+  value
+}
+
+tre_coerce_data_frame <- function(value) {
+  value <- tre_coerce_r_object(value)
+  if (is.null(value)) {
+    return(NULL)
+  }
+  if (is.data.frame(value)) {
+    return(value)
+  }
+
+  if (is.list(value)) {
+    for (candidate in c("items", "rows", "data", "result", "output", "body", "studies", "datasets", "datafiles", "entities", "domains", "variables")) {
+      if (!is.null(value[[candidate]])) {
+        candidate_df <- tre_coerce_data_frame(value[[candidate]])
+        if (!is.null(candidate_df)) {
+          return(candidate_df)
+        }
+      }
+    }
+
+    as_df <- try(
+      jsonlite::fromJSON(
+        jsonlite::toJSON(value, auto_unbox = TRUE),
+        simplifyDataFrame = TRUE
+      ),
+      silent = TRUE
+    )
+
+    if (!inherits(as_df, "try-error") && is.data.frame(as_df)) {
+      return(as_df)
+    }
+  }
+
+  NULL
+}
+
 tre_is_invalid_request_envelope <- function(envelope) {
   if (is.null(envelope) || !is.list(envelope)) {
     return(FALSE)
@@ -443,12 +493,18 @@ tre_normalize_output <- function(result, output_label = NULL, status_and_purpose
     )
   }
 
+  raw_data <- tre_extract_data(envelope)
+  object <- tre_coerce_r_object(raw_data)
+  data_frame <- tre_coerce_data_frame(object)
+
   structure(
     list(
       function_name = function_name,
       output_label = output_label,
       status_and_purpose = status_and_purpose,
-      data = tre_extract_data(envelope),
+      data = object,
+      object = object,
+      data_frame = data_frame,
       envelope = envelope,
       payloads = result$payloads %||% list()
     ),

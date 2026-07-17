@@ -81,3 +81,44 @@ test_that("protocol failures are converted to ahri_tre_protocol_error", {
     class = "ahri_tre_protocol_error"
   )
 })
+
+test_that("wrapper output coerces JSON string data to R objects", {
+  captured <- testthat::with_mocked_bindings(
+    execute_json = function(client, request) {
+      list(
+        envelope = list(
+          ok = TRUE,
+          kind = request$kind,
+          data = '{"rows":[{"id":1,"label":"alpha"}]}'
+        ),
+        payloads = list()
+      )
+    },
+    dataset_list(list(client = "ok"), format = "json")
+  )
+
+  expect_true(is.list(captured$object))
+  expect_true(is.data.frame(captured$data_frame))
+  expect_identical(captured$data_frame$id[[1]], 1L)
+  expect_identical(captured$data_frame$label[[1]], "alpha")
+})
+
+test_that("wrapper output exposes data.frame when payload is tabular list", {
+  captured <- testthat::with_mocked_bindings(
+    execute_json = function(client, request) {
+      list(
+        envelope = list(
+          ok = TRUE,
+          kind = request$kind,
+          data = list(rows = list(list(id = 2L, label = "beta")))
+        ),
+        payloads = list()
+      )
+    },
+    dataset_search(list(client = "ok"), format = "json")
+  )
+
+  expect_true(is.data.frame(captured$data_frame))
+  expect_identical(captured$data_frame$id[[1]], 2L)
+  expect_identical(captured$data_frame$label[[1]], "beta")
+})
