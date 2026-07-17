@@ -820,7 +820,7 @@ zipball <- NULL
 print_step("Building Windows binary (.zip)")
 if (.Platform$OS.type == "windows") {
     zipball <- tryCatch({
-        devtools::build(path = ".", binary = TRUE, vignettes = FALSE, manual = FALSE)
+        devtools::build(path = release_dir, binary = TRUE, vignettes = FALSE, manual = FALSE)
     }, error = function(e) {
         cat("  ERROR building Windows binary:", e$message, "\n")
         NULL
@@ -834,7 +834,10 @@ if (.Platform$OS.type == "windows") {
         # Try alternative build method
         cat("  Retrying with R CMD build --binary...\n")
         system2("R", c("CMD", "build", "--binary", "."), stdout = TRUE, stderr = TRUE)
-        zipball <- list.files(".", pattern = "\\.zip$", full.names = TRUE)
+        zipball <- list.files(release_dir, pattern = "\\.zip$", full.names = TRUE)
+        if (length(zipball) == 0) {
+            zipball <- list.files(".", pattern = "\\.zip$", full.names = TRUE)
+        }
         if (length(zipball) > 0) {
             zipball <- zipball[1]
             cat("  ✓ Windows binary created via R CMD build:", basename(zipball), "\n")
@@ -866,9 +869,13 @@ if (has_path_file(tarball)) {
 # Copy Windows binary
 if (has_path_file(zipball)) {
     target <- file.path(release_dir, basename(zipball))
-    file.copy(zipball, target, overwrite = TRUE)
+    if (normalizePath(zipball) != normalizePath(target)) {
+        file.copy(zipball, target, overwrite = TRUE)
+        cat("  ✓ Copied to ./release:", basename(zipball), "\n")
+    } else {
+        cat("  ✓ Windows binary already in ./release:", basename(zipball), "\n")
+    }
     release_artifacts <- c(release_artifacts, target)
-    cat("  ✓ Copied to ./release:", basename(zipball), "\n")
 }
 
 # Verify release artifacts exist in ./release
