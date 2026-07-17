@@ -483,6 +483,24 @@ tre_cli_try_restart_daemon <- function() {
   isTRUE(start_json$ok)
 }
 
+tre_should_prefer_data_frame <- function(object, data_frame) {
+  if (is.null(data_frame)) {
+    return(FALSE)
+  }
+  if (is.data.frame(object)) {
+    return(TRUE)
+  }
+  if (!is.list(object)) {
+    return(FALSE)
+  }
+
+  tabular_keys <- c(
+    "rows", "items", "studies", "datasets", "datafiles",
+    "entities", "domains", "variables", "metadata"
+  )
+  any(tabular_keys %in% names(object))
+}
+
 tre_normalize_output <- function(result, output_label = NULL, status_and_purpose = NULL, function_name = NULL) {
   envelope <- result$envelope %||% list()
   if (!tre_result_ok(envelope)) {
@@ -496,13 +514,14 @@ tre_normalize_output <- function(result, output_label = NULL, status_and_purpose
   raw_data <- tre_extract_data(envelope)
   object <- tre_coerce_r_object(raw_data)
   data_frame <- tre_coerce_data_frame(object)
+  data <- if (tre_should_prefer_data_frame(object, data_frame)) data_frame else object
 
   structure(
     list(
       function_name = function_name,
       output_label = output_label,
       status_and_purpose = status_and_purpose,
-      data = object,
+      data = data,
       object = object,
       data_frame = data_frame,
       envelope = envelope,

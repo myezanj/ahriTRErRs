@@ -23,7 +23,7 @@ for (attempt in seq_len(2L)) {
   client <- AhriTreClient()
   probe <- tryCatch(study_list(client, format = 'json'), error = function(e) e)
   if (!inherits(probe, 'error')) {
-    studies <- probe$data
+    studies <- probe$object
     break
   }
 
@@ -70,7 +70,7 @@ if (inherits(datasets_result, 'error') && grepl('required pointer was null', con
 if (inherits(datasets_result, 'error')) {
   stop(datasets_result)
 }
-datasets <- datasets_result$data
+datasets <- datasets_result$object
 if (is.list(datasets) && is.list(datasets$datasets)) {
   dataset_names <- vapply(datasets$datasets, function(e) if (!is.null(e$catalog$asset$name)) as.character(e$catalog$asset$name[[1]]) else NA_character_, character(1), USE.NAMES = FALSE)
 } else if (is.data.frame(datasets) && 'name' %in% names(datasets)) {

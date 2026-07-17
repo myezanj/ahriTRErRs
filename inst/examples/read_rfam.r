@@ -21,7 +21,7 @@ if (!file.exists(manifest)) {
 } else {
   client <- AhriTreClient()
   on.exit(close(client), add = TRUE)
-  studies <- study_list(client, format = "json")$data
+  studies <- study_list(client, format = "json")$object
   if (is.list(studies) && is.list(studies$studies)) {
     study_names <- vapply(studies$studies, function(e) {
       if (!is.null(e$study$name)) as.character(e$study$name[[1]]) else NA_character_
@@ -66,7 +66,7 @@ if (!file.exists(manifest)) {
       print(study_df)
     }
 
-    datafiles <- datafile_list(client, study = target, include_versions = TRUE, format = "json")$data
+    datafiles <- datafile_list(client, study = target, include_versions = TRUE, format = "json")$object
     datafile_names <- character()
     if (is.list(datafiles) && is.list(datafiles$datafiles)) {
       datafile_names <- vapply(datafiles$datafiles, function(e) {
@@ -86,7 +86,7 @@ if (!file.exists(manifest)) {
       cat("[INFO] Datafile ", i, ": ", datafile_names[[i]], "\n", sep = "")
     }
 
-    datasets <- dataset_list(client, study = target, include_versions = TRUE, format = "json")$data
+    datasets <- dataset_list(client, study = target, include_versions = TRUE, format = "json")$object
     if (is.list(datasets) && is.list(datasets$datasets)) {
       dataset_names <- vapply(datasets$datasets, function(e) {
         if (!is.null(e$catalog$asset$name)) as.character(e$catalog$asset$name[[1]]) else NA_character_
@@ -110,7 +110,7 @@ if (!file.exists(manifest)) {
     cat("\n[INFO] Dataset metadata\n")
     for (nm in dataset_names) {
       cat("\n[INFO] Metadata for dataset: ", nm, "\n", sep = "")
-      metadata <- dataset_metadata(client, study = target, dataset = nm, with_variables = TRUE, format = "json")$data
+      metadata <- dataset_metadata(client, study = target, dataset = nm, with_variables = TRUE, format = "json")$object
       if (is.list(metadata) && !is.data.frame(metadata)) {
         print(metadata)
       } else {
