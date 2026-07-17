@@ -1,4 +1,4 @@
-# ahri-tre-r
+# ahriTREr_rs
 
 Seed repository for the future AHRI TRE R binding.
 
@@ -7,7 +7,7 @@ Seed repository for the future AHRI TRE R binding.
 Install from GitHub:
 
 ```r
-remotes::install_github("AHRIORG/ahri-tre-r")
+remotes::install_github("AHRIORG/ahriTREr_rs")
 ```
 
 This package is intentionally small. It demonstrates how an R package should
@@ -47,12 +47,12 @@ share/ahri-tre/manifest.json
 
 The devcontainer exports:
 
-- `AHRI_TRE_LAKE_CONTAINER_PATH=/workspaces/ahri-tre-r/.lake`
-- `TRE_LAKE_PATH=/workspaces/ahri-tre-r/.lake`
+- `AHRI_TRE_LAKE_CONTAINER_PATH=/workspaces/ahriTREr_rs/.lake`
+- `TRE_LAKE_PATH=/workspaces/ahriTREr_rs/.lake`
 
-The devcontainer reads committed defaults from `.devcontainer/.env.example`.
-Copy it to `.devcontainer/.env` only when you need local overrides; the live
-`.env` file is ignored and should not be committed.
+The devcontainer reads defaults from `.devcontainer/.env`.
+Edit that file directly when you need local overrides; `.devcontainer/.env` is
+ignored and should not be committed.
 
 It also installs the AHRI TRE `v0.8.3` runtime release for the container
 architecture and exports `AHRI_TRE_RUNTIME_ROOT=/opt/ahri-tre-runtime`. Set
@@ -136,7 +136,7 @@ Regenerate TRE command reference and schema-derived docs:
 Run the shared binding_contract smoke path against a staged package with:
 
 ```bash
-AHRI_TRE_RUNTIME_ROOT=/workspaces/ahri-tre-r/dist/ahri-tre-dev \
+AHRI_TRE_RUNTIME_ROOT=/workspaces/ahriTREr_rs/dist/ahri-tre-dev \
   R -q -e 'jsonlite::write_json(ahritre::run_contract_smoke(), stdout(), auto_unbox = TRUE, pretty = TRUE)'
 ```
 

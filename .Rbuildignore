@@ -8,3 +8,5 @@
 ^_pkgdown[.]yml$
 ^build_release[.]R$
 ^release($|/)
+^[.]runtime($|/)
+^ahritre[.]Rcheck($|/)

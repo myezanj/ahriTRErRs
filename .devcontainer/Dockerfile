@@ -48,9 +48,9 @@ RUN printf '%s\n' \
         'export LD_LIBRARY_PATH="/opt/ahri-tre-runtime/lib:${LD_LIBRARY_PATH:-}"' \
         > /etc/profile.d/ahri-tre-runtime.sh
 
-COPY DESCRIPTION /tmp/ahri-tre-r/DESCRIPTION
+COPY DESCRIPTION /tmp/ahriTREr_rs/DESCRIPTION
 RUN bash -lc 'for i in 1 2 3; do install2.r --error remotes && exit 0; echo "retrying remotes install ($i/3)"; sleep 5; done; exit 1'
-RUN R -q -e "remotes::install_deps('/tmp/ahri-tre-r', dependencies = TRUE, upgrade = 'never')"
+RUN R -q -e "remotes::install_deps('/tmp/ahriTREr_rs', dependencies = TRUE, upgrade = 'never')"
 
 RUN useradd -m -s /bin/bash vscode \
     && mkdir -p /home/vscode/.vscode-server \
@@ -58,5 +58,13 @@ RUN useradd -m -s /bin/bash vscode \
     && echo "vscode ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/vscode \
     && chmod 0440 /etc/sudoers.d/vscode
 
+RUN printf '%s\n' \
+        'R_LIBS_USER=~/R/x86_64-pc-linux-gnu-library/4.4' \
+        > /home/vscode/.Renviron \
+    && printf '%s\n' \
+        '.libPaths(unique(c(Sys.getenv("R_LIBS_USER"), .libPaths())))' \
+        > /home/vscode/.Rprofile \
+    && chown vscode:vscode /home/vscode/.Renviron /home/vscode/.Rprofile
+
 USER vscode
-WORKDIR /workspaces/ahri-tre-r
+WORKDIR /workspaces/ahriTREr_rs

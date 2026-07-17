@@ -8,8 +8,8 @@ Description: Provides R bindings over the AHRI TRE stable C ABI and public
     execution, payload handling, and generated command wrappers for TRE
     interfaces.
 License: MIT + file LICENSE
-URL: https://github.com/AHRIORG/ahri-tre-r
-BugReports: https://github.com/AHRIORG/ahri-tre-r/issues
+URL: https://github.com/AHRIORG/ahriTREr_rs
+BugReports: https://github.com/AHRIORG/ahriTREr_rs/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Depends:
@@ -25,3 +25,4 @@ Suggests:
     withr
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.0.0
+RoxygenNote: 7.3.2

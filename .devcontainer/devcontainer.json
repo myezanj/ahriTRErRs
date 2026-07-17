@@ -1,8 +1,8 @@
 {
-  "name": "ahri-tre-r",
+  "name": "ahriTREr_rs",
   "dockerComposeFile": "docker_compose.yml",
   "service": "r",
-  "workspaceFolder": "/workspaces/ahri-tre-r",
+  "workspaceFolder": "/workspaces/ahriTREr_rs",
   "remoteUser": "vscode",
   "features": {},
   "customizations": {
@@ -13,5 +13,5 @@
       ]
     }
   },
-  "postCreateCommand": "R -q -e \"if (!requireNamespace('remotes', quietly = TRUE)) install.packages('remotes', repos = 'https://cloud.r-project.org'); remotes::install_deps('.', dependencies = TRUE, upgrade = 'never'); if (!requireNamespace('roxygen2', quietly = TRUE)) install.packages('roxygen2', repos = 'https://cloud.r-project.org'); roxygen2::roxygenise(); if (file.exists('/opt/ahri-tre-runtime/bin/ahri-tre') && file.exists('/opt/ahri-tre-runtime/bin/ahri-tred')) { if (!requireNamespace('testthat', quietly = TRUE)) install.packages('testthat', repos = 'https://cloud.r-project.org'); testthat::test_dir('tests/testthat') } else { message('AHRI TRE runtime not installed in this container build; skipping tests that require runtime.') }\""
+  "postCreateCommand": "R -q -e \"dir.create(Sys.getenv('R_LIBS_USER'), recursive = TRUE, showWarnings = FALSE); .libPaths(unique(c(Sys.getenv('R_LIBS_USER'), .libPaths()))); if (!requireNamespace('remotes', quietly = TRUE)) install.packages('remotes', repos = 'https://cloud.r-project.org'); if (!requireNamespace('languageserver', quietly = TRUE)) install.packages('languageserver', repos = 'https://cloud.r-project.org'); remotes::install_deps('.', dependencies = TRUE, upgrade = 'never'); if (!requireNamespace('roxygen2', quietly = TRUE)) install.packages('roxygen2', repos = 'https://cloud.r-project.org'); roxygen2::roxygenise(); if (file.exists('/opt/ahri-tre-runtime/bin/ahri-tre') && file.exists('/opt/ahri-tre-runtime/bin/ahri-tred')) { if (!requireNamespace('testthat', quietly = TRUE)) install.packages('testthat', repos = 'https://cloud.r-project.org'); testthat::test_dir('tests/testthat') } else { message('AHRI TRE runtime not installed in this container build; skipping tests that require runtime.') }\""
 }

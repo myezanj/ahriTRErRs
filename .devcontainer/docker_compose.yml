@@ -1,4 +1,4 @@
-name: ahri-tre-r-dev
+name: ahriTREr_rs-dev
 
 services:
   r:
@@ -28,21 +28,21 @@ services:
     env_file:
       - .env
     environment:
-      AHRI_TRE_LAKE_CONTAINER_PATH: ${AHRI_TRE_LAKE_CONTAINER_PATH:-/workspaces/ahri-tre-r/.lake}
-      TRE_LAKE_PATH: ${AHRI_TRE_LAKE_CONTAINER_PATH:-/workspaces/ahri-tre-r/.lake}
+      AHRI_TRE_LAKE_CONTAINER_PATH: ${AHRI_TRE_LAKE_CONTAINER_PATH:-/workspaces/ahriTREr_rs/.lake}
+      TRE_LAKE_PATH: ${AHRI_TRE_LAKE_CONTAINER_PATH:-/workspaces/ahriTREr_rs/.lake}
       TRE_HOST: tre-postgres
       TRE_PORT: 5432
       TRE_DBNAME: ${TRE_DBNAME:-tre}
       TRE_USER: ${TRE_USER:-tre_user}
       TRE_PWD: ${TRE_PWD:-tre_password}
     volumes:
-      - ..:/workspaces/ahri-tre-r:cached
-      - tre-lake:${AHRI_TRE_LAKE_CONTAINER_PATH:-/workspaces/ahri-tre-r/.lake}
+      - ..:/workspaces/ahriTREr_rs:cached
+      - tre-lake:${AHRI_TRE_LAKE_CONTAINER_PATH:-/workspaces/ahriTREr_rs/.lake}
       - vscode-server:/home/vscode/.vscode-server
     networks:
       tre-net:
         aliases:
-          - ahri-tre-r-dev
+          - ahriTREr_rs-dev
     expose:
       - "8080"
     extra_hosts:
