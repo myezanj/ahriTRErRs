@@ -13,7 +13,8 @@ AhriTreClient <- function(api = CApi(), runtime_config = RuntimeConfig(), check_
   client <- list(api = api, handle = created$client)
   class(client) <- "ahri_tre_client"
   reg.finalizer(client$handle, function(handle) {
-    ahri_tre_client_free_bridge(api$library_path, handle)
+    # The handle may already be freed explicitly via close().
+    try(ahri_tre_client_free_bridge(api$library_path, handle), silent = TRUE)
   }, onexit = TRUE)
   client
 }
@@ -21,7 +22,7 @@ AhriTreClient <- function(api = CApi(), runtime_config = RuntimeConfig(), check_
 #' @export
 #' @method close ahri_tre_client
 close.ahri_tre_client <- function(con, ...) {
-  ahri_tre_client_free_bridge(con$api$library_path, con$handle)
+  try(ahri_tre_client_free_bridge(con$api$library_path, con$handle), silent = TRUE)
   invisible(NULL)
 }
 
