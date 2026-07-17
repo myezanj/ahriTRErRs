@@ -5,6 +5,8 @@
 
 if (file.exists(".env")) readRenviron(".env")
 
+default_cran_repo <- "https://cloud.r-project.org"
+
 env_get_first <- function(keys, default = "") {
     for (key in keys) {
         value <- Sys.getenv(key, "")
@@ -46,49 +48,84 @@ ensure_user_library_precedence <- function() {
     invisible(user_lib)
 }
 
-ensure_languageserver_package <- function() {
+ensure_packages <- function(packages, context_label = "dependencies") {
     user_lib <- ensure_user_library_precedence()
-
-    if (requireNamespace("languageserver", quietly = TRUE)) {
-        cat("[INFO] languageserver already installed (lib: ", user_lib, ")\n", sep = "")
+    packages <- unique(packages[nzchar(packages)])
+    if (length(packages) == 0) {
         return(invisible(TRUE))
     }
 
-    cat("[INFO] Installing languageserver (lib: ", user_lib, ")\n", sep = "")
+    missing <- packages[!vapply(packages, requireNamespace, logical(1), quietly = TRUE)]
+    if (length(missing) == 0) {
+        cat("[INFO] ", context_label, " already installed (lib: ", user_lib, ")\n", sep = "")
+        return(invisible(TRUE))
+    }
+
+    cat("[INFO] Installing missing ", context_label, ": ", paste(missing, collapse = ", "), "\n", sep = "")
     install_ok <- tryCatch({
-        install.packages("languageserver", repos = "https://cloud.r-project.org")
-        requireNamespace("languageserver", quietly = TRUE)
+        install.packages(missing, repos = default_cran_repo)
+        all(vapply(missing, requireNamespace, logical(1), quietly = TRUE))
     }, error = function(e) {
-        warning("languageserver installation failed: ", conditionMessage(e), call. = FALSE)
+        warning("Failed to install ", context_label, ": ", conditionMessage(e), call. = FALSE)
         FALSE
     })
 
     if (isTRUE(install_ok)) {
-        cat("[INFO] languageserver installed successfully.\n")
+        cat("[INFO] Installed ", context_label, " successfully.\n", sep = "")
     } else {
-        warning("languageserver is still unavailable after install attempt.", call. = FALSE)
+        warning("Some ", context_label, " are still unavailable after install attempt.", call. = FALSE)
     }
 
     invisible(install_ok)
 }
 
+ensure_languageserver_package <- function() {
+    ensure_packages("languageserver", context_label = "languageserver")
+}
+
 ensure_roxygen_package <- function() {
+    ensure_packages("roxygen2", context_label = "roxygen2")
     suppressMessages({
         library(roxygen2)
     })
 }
 
 ensure_devtools_package <- function() {
+    ensure_packages("devtools", context_label = "devtools")
     suppressMessages({
         library(devtools)
     })
 }
 
-run_in_clean_rscript <- function(expr, context_label) {
+ensure_remotes_package <- function() {
+    ensure_packages("remotes", context_label = "remotes")
+}
+
+ensure_repo_dependencies <- function() {
+    ensure_remotes_package()
+    cat("[INFO] Ensuring package dependencies from DESCRIPTION are installed...\n")
+    install_ok <- tryCatch({
+        remotes::install_deps(".", dependencies = TRUE, upgrade = "never")
+        TRUE
+    }, error = function(e) {
+        warning("Could not install repository dependencies: ", conditionMessage(e), call. = FALSE)
+        FALSE
+    })
+
+    if (isTRUE(install_ok)) {
+        cat("[INFO] Repository dependencies are installed.\n")
+    }
+
+    invisible(install_ok)
+}
+
+run_in_clean_rscript <- function(expr, context_label, required_packages = character()) {
     rscript <- Sys.which("Rscript")
     if (!nzchar(rscript)) {
         stop("Rscript was not found on PATH; cannot run ", context_label, " in clean session.")
     }
+    required_packages <- unique(c("languageserver", required_packages))
+    required_packages_literal <- paste(sprintf("'%s'", required_packages), collapse = ", ")
     script_path <- tempfile(pattern = "ahriTRErRs-clean-", fileext = ".R")
     on.exit(unlink(script_path, force = TRUE), add = TRUE)
     writeLines(c(
@@ -102,7 +139,8 @@ run_in_clean_rscript <- function(expr, context_label) {
         "user_lib <- normalizePath(path.expand(user_lib), winslash = '/', mustWork = FALSE)",
         "dir.create(user_lib, recursive = TRUE, showWarnings = FALSE)",
         ".libPaths(unique(c(user_lib, .libPaths())))",
-        "if (!requireNamespace('languageserver', quietly = TRUE)) install.packages('languageserver', repos = 'https://cloud.r-project.org')",
+        sprintf("required_pkgs <- c(%s)", required_packages_literal),
+        "for (pkg in required_pkgs) if (!requireNamespace(pkg, quietly = TRUE)) install.packages(pkg, repos = 'https://cloud.r-project.org')",
         expr
     ), con = script_path)
     status <- system2(rscript, c(script_path))
@@ -161,8 +199,9 @@ run_document_task <- function() {
     print_header("Documenting ahriTRErRs")
     print_step("Generating documentation")
     run_in_clean_rscript(
-        "if (!requireNamespace('roxygen2', quietly = TRUE)) stop('roxygen2 is required for --document'); roxygen2::roxygenise(package.dir='.')",
-        "Documentation generation"
+        "roxygen2::roxygenise(package.dir='.')",
+        "Documentation generation",
+        required_packages = c("roxygen2")
     )
     cat("  ✓ Documentation generated\n")
     print_step("Cleaning compiled artifacts left by devtools::document()")
@@ -174,8 +213,9 @@ run_test_task <- function() {
     print_header("Testing ahriTRErRs")
     print_step("Running test suite")
     run_in_clean_rscript(
-        "if (!requireNamespace('devtools', quietly = TRUE)) stop('devtools is required for --test'); devtools::test()",
-        "Test suite"
+        "devtools::test()",
+        "Test suite",
+        required_packages = c("devtools")
     )
 }
 
@@ -185,12 +225,12 @@ run_check_task <- function(strict = FALSE) {
     run_in_clean_rscript(
         sprintf(
             paste(
-                "if (!requireNamespace('devtools', quietly = TRUE)) stop('devtools is required for --check');",
                 "devtools::check(document = FALSE, manual = FALSE, error_on = '%s')"
             ),
             if (isTRUE(strict)) "warning" else "never"
         ),
-        "R CMD check"
+        "R CMD check",
+        required_packages = c("devtools")
     )
 }
 
@@ -198,15 +238,14 @@ run_install_task <- function() {
     print_header("Installing ahriTRErRs")
     print_step("Installing package from source tree")
     run_in_clean_rscript(
-        "if (!requireNamespace('devtools', quietly = TRUE)) stop('devtools is required for --install'); devtools::install(upgrade = FALSE, dependencies = FALSE, quiet = FALSE)",
-        "Package install"
+        "devtools::install(upgrade = FALSE, dependencies = FALSE, quiet = FALSE)",
+        "Package install",
+        required_packages = c("devtools")
     )
 }
 
 run_site_task <- function() {
-    if (!requireNamespace("pkgdown", quietly = TRUE)) {
-        stop("pkgdown is required for --site. Install it with install.packages('pkgdown').")
-    }
+    ensure_packages("pkgdown", context_label = "pkgdown")
     print_header("Building pkgdown site")
     print_step("Building site")
     pkgdown::build_site()
@@ -263,6 +302,14 @@ if ("--help" %in% cli_args) {
 
 initialize_release_env()
 ensure_languageserver_package()
+ensure_packages(c("roxygen2", "devtools"), context_label = "build tooling")
+
+auto_install_deps <- tolower(trimws(env_get_first(c("AHRI_TRE_AUTO_INSTALL_DEPS"), default = "true"))) %in% c("1", "true", "yes", "on")
+if (isTRUE(auto_install_deps)) {
+    ensure_repo_dependencies()
+} else {
+    cat("[INFO] Skipping dependency auto-install because AHRI_TRE_AUTO_INSTALL_DEPS is disabled.\n")
+}
 
 build_requested <- "--build" %in% cli_args
 strict_check <- "--strict-check" %in% cli_args
