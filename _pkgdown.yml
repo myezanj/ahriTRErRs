@@ -1,11 +1,11 @@
 template:
   bootstrap: 5
 
-url: https://myezanj.github.io/ahriTREr_rs/
+url: https://myezanj.github.io/ahriTRErRs/
 
 authors:
   AHRI TRE Maintainers:
-    href: https://github.com/myezanj/ahriTREr_rs
+    href: https://github.com/myezanj/ahriTRErRs
 
 reference:
   - title: Client and Runtime
