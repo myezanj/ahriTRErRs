@@ -4,7 +4,14 @@ if (is.na(bootstrap_helper_path) || !nzchar(bootstrap_helper_path)) {
 	stop("Could not locate inst/examples/bootstrap_helpers.r")
 }
 source(bootstrap_helper_path, local = TRUE)
-ensure_ahriTREr_available()
+if (exists("ensure_ahriTRErRs_available", mode = "function")) {
+	ensure_ahriTRErRs_available()
+} else if (exists("ensure_ahriTREr_available", mode = "function")) {
+	# Backward-compatible fallback when older helper scripts are in use.
+	ensure_ahriTREr_available()
+} else {
+	stop("Could not locate a package bootstrap helper function.")
+}
 
 start_time <- Sys.time()
 cat("Execution started at:", format(start_time, "%Y-%m-%d %H:%M:%S %Z"), "\n")
@@ -27,7 +34,7 @@ on.exit({
 domain_name <- "Basic Science"
 study_name <- "The Biology of Subclinical Asymptomic TB"
 
-bootstrap <- ahriTREr::example_ensure_domain_study(
+bootstrap <- ahriTRErRs::example_ensure_domain_study(
 	datastore,
 	domain_name,
 	study_name,
