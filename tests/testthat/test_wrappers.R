@@ -108,6 +108,70 @@ test_that("unsupported protocol kinds fall back to CLI", {
   expect_identical(captured$data$label[[1]], "zeta")
 })
 
+test_that("no-live-session execute_json errors fall back to CLI", {
+  captured <- testthat::with_mocked_bindings(
+    execute_json = function(client, request) {
+      stop("no live session is selected; run session use")
+    },
+    tre_cli_try_activate_live_session = function() FALSE,
+    tre_execute_via_cli = function(kind, body) {
+      list(
+        envelope = list(ok = TRUE, kind = kind, data = list(rows = list(list(id = 8L, label = "theta")))),
+        payloads = list()
+      )
+    },
+    dataset_list(list(client = "ok"), format = "json")
+  )
+
+  expect_true(is.data.frame(captured$data))
+  expect_identical(captured$data$id[[1]], 8L)
+  expect_identical(captured$data$label[[1]], "theta")
+})
+
+test_that("no-live-session envelope returns empty data for read-like wrappers", {
+  expect_warning(
+    testthat::with_mocked_bindings(
+      execute_json = function(client, request) {
+        list(
+          envelope = list(
+            ok = FALSE,
+            kind = request$kind,
+            error = list(message = "no live session is selected")
+          ),
+          payloads = list()
+        )
+      },
+      tre_cli_try_activate_live_session = function() FALSE,
+      tre_execute_via_cli = function(kind, body) NULL,
+      dataset_list(list(client = "ok"), format = "json")
+    ),
+    "no live session is selected; returning empty result"
+  )
+})
+
+test_that("no-live-session envelope errors when soft handling is disabled", {
+  withr::local_options(list(ahriTRErRs.soft_no_live_session = FALSE))
+
+  expect_error(
+    testthat::with_mocked_bindings(
+      execute_json = function(client, request) {
+        list(
+          envelope = list(
+            ok = FALSE,
+            kind = request$kind,
+            error = list(message = "no live session is selected")
+          ),
+          payloads = list()
+        )
+      },
+      tre_cli_try_activate_live_session = function() FALSE,
+      tre_execute_via_cli = function(kind, body) NULL,
+      dataset_list(list(client = "ok"), format = "json")
+    ),
+    class = "ahri_tre_protocol_error"
+  )
+})
+
 test_that("CLI fallback quotes shell-sensitive argument values", {
   args <- ahriTRErRs:::tre_cli_args_from_body(
     "ingest.dataset.from-sql",

@@ -251,6 +251,16 @@ tre_is_no_live_session_envelope <- function(envelope) {
   grepl("no live session is selected", message, fixed = TRUE)
 }
 
+tre_is_no_live_session_message <- function(message) {
+  is.character(message) &&
+    length(message) >= 1L &&
+    grepl("no live session is selected", message[[1]], fixed = TRUE)
+}
+
+tre_is_no_live_session_error <- function(err) {
+  inherits(err, "error") && tre_is_no_live_session_message(conditionMessage(err))
+}
+
 tre_is_daemon_connection_envelope <- function(envelope) {
   if (is.null(envelope) || !is.list(envelope)) {
     return(FALSE)
@@ -267,9 +277,51 @@ tre_is_daemon_connection_envelope <- function(envelope) {
   ))
 }
 
+tre_is_daemon_connection_message <- function(message) {
+  if (!is.character(message) || length(message) < 1L) {
+    return(FALSE)
+  }
+  any(vapply(
+    c(
+      "daemon closed the protocol connection",
+      "daemon socket",
+      "stale"
+    ),
+    function(p) grepl(p, message[[1]], fixed = TRUE),
+    logical(1)
+  ))
+}
+
+tre_is_daemon_connection_error <- function(err) {
+  inherits(err, "error") && tre_is_daemon_connection_message(conditionMessage(err))
+}
+
 tre_auto_session_enabled <- function() {
   flag <- tolower(Sys.getenv("AHRI_TRE_AUTO_SESSION_USE", unset = "true"))
   !flag %in% c("0", "false", "no", "off")
+}
+
+tre_is_read_like_kind <- function(kind) {
+  if (!is.character(kind) || length(kind) < 1L || !nzchar(kind[[1]])) {
+    return(FALSE)
+  }
+  grepl(
+    "(\\.list$|\\.get$|\\.search$|\\.preview$|\\.metadata$|\\.status$|^version$|\\.current$)",
+    kind[[1]]
+  )
+}
+
+tre_soft_no_live_session_enabled <- function(kind) {
+  flag <- tolower(trimws(as.character(
+    getOption(
+      "ahriTRErRs.soft_no_live_session",
+      Sys.getenv("AHRI_TRE_SOFT_NO_LIVE_SESSION", unset = "true")
+    )
+  )))
+  if (flag %in% c("0", "false", "no", "off")) {
+    return(FALSE)
+  }
+  tre_is_read_like_kind(kind)
 }
 
 tre_cli_binary <- function() {
@@ -563,8 +615,43 @@ tre_command_call <- function(
     protocol_version = .protocol_version
   )
 
-  result <- execute_json(client = client, request = request)
+  result <- tryCatch(
+    execute_json(client = client, request = request),
+    error = function(err) err
+  )
   used_cli <- FALSE
+
+  if (inherits(result, "error")) {
+    if (tre_auto_session_enabled() && tre_is_no_live_session_error(result)) {
+      if (tre_cli_try_activate_live_session()) {
+        result <- tryCatch(
+          execute_json(client = client, request = request),
+          error = function(err) err
+        )
+      }
+    }
+
+    if (inherits(result, "error") && tre_is_no_live_session_error(result)) {
+      cli_result <- tre_execute_via_cli(kind = kind, body = body)
+      if (!is.null(cli_result)) {
+        result <- cli_result
+        used_cli <- TRUE
+      }
+    }
+
+    if (inherits(result, "error") && tre_auto_session_enabled() && tre_is_daemon_connection_error(result)) {
+      if (tre_cli_try_restart_daemon()) {
+        result <- tryCatch(
+          execute_json(client = client, request = request),
+          error = function(err) err
+        )
+      }
+    }
+
+    if (inherits(result, "error")) {
+      stop(result)
+    }
+  }
 
   if (tre_is_invalid_request_envelope(result$envelope %||% list())) {
     cli_result <- tre_execute_via_cli(kind = kind, body = body)
@@ -618,6 +705,17 @@ tre_command_call <- function(
         }
       }
     }
+  }
+
+  if (tre_is_no_live_session_envelope(result$envelope %||% list()) && tre_soft_no_live_session_enabled(kind)) {
+    warning(
+      sprintf(
+        "%s: no live session is selected; returning empty result (set option ahriTRErRs.soft_no_live_session = FALSE to raise an error)",
+        .function_name %||% kind
+      ),
+      call. = FALSE
+    )
+    result$envelope <- list(ok = TRUE, kind = kind, data = list())
   }
 
   tre_normalize_output(
