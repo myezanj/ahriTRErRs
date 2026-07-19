@@ -1,0 +1,121 @@
+{
+  "schema_version": "ahri-tre.package.v1",
+  "package_name": "ahri-tre",
+  "workspace_version": "0.8.3",
+  "target": "x86_64-unknown-linux-gnu",
+  "platform": "linux-gnu",
+  "git_commit": "0b6eb6ad501b",
+  "build_profile": "release",
+  "staged_binaries": [
+    {
+      "name": "ahri-tre",
+      "path": "bin/ahri-tre"
+    },
+    {
+      "name": "ahri-tred",
+      "path": "bin/ahri-tred"
+    }
+  ],
+  "staged_libraries": [
+    {
+      "name": "ahri_tre_ffi_c",
+      "path": "lib/libahri_tre_ffi_c.so"
+    },
+    {
+      "name": "duckdb",
+      "path": "lib/libduckdb.so"
+    }
+  ],
+  "c_abi_artifacts": [
+    {
+      "name": "ahri_tre_ffi_c",
+      "path": "lib/libahri_tre_ffi_c.so"
+    },
+    {
+      "name": "ahri_tre_ffi_c.h",
+      "path": "include/ahri_tre_ffi_c.h"
+    }
+  ],
+  "required_runtime_libraries": [
+    {
+      "name": "ahri_tre_ffi_c",
+      "path": "lib/libahri_tre_ffi_c.so",
+      "classification": "bundled-redistributable"
+    },
+    {
+      "name": "duckdb",
+      "path": "lib/libduckdb.so",
+      "classification": "bundled-redistributable"
+    }
+  ],
+  "dependency_reports": [
+    "share/ahri-tre/dependency-audit/bin-ahri-tre.txt",
+    "share/ahri-tre/dependency-audit/bin-ahri-tred.txt",
+    "share/ahri-tre/dependency-audit/lib-ffi.txt"
+  ],
+  "validation_commands": [
+    {
+      "program": "bin/ahri-tre",
+      "args": [
+        "version"
+      ],
+      "library_path_env": "LD_LIBRARY_PATH",
+      "library_path": "lib"
+    },
+    {
+      "program": "bin/ahri-tre",
+      "args": [
+        "doctor",
+        "--format",
+        "json"
+      ],
+      "library_path_env": "LD_LIBRARY_PATH",
+      "library_path": "lib"
+    },
+    {
+      "program": "bin/ahri-tre",
+      "args": [
+        "schema",
+        "list",
+        "--format",
+        "json"
+      ],
+      "library_path_env": "LD_LIBRARY_PATH",
+      "library_path": "lib"
+    },
+    {
+      "program": "bin/ahri-tred",
+      "args": [
+        "--help"
+      ],
+      "library_path_env": "LD_LIBRARY_PATH",
+      "library_path": "lib"
+    }
+  ],
+  "installer": {
+    "schema_version": "ahri-tre.installer.v1",
+    "prefix_variable": "AHRI_TRE_PREFIX",
+    "install_script": "install.sh",
+    "install_directories": {
+      "binaries": "bin",
+      "runtime_binaries": "libexec/ahri-tre",
+      "libraries": "lib",
+      "headers": "include",
+      "support_files": "share/ahri-tre"
+    },
+    "runtime_library_path": {
+      "strategy": "generated-launchers-set-prefix-lib-before-exec",
+      "linux_env": "LD_LIBRARY_PATH",
+      "macos_env": "DYLD_LIBRARY_PATH",
+      "library_dir": "lib"
+    },
+    "profile_example": "share/ahri-tre/profile.env.example",
+    "secrets_example": "share/ahri-tre/secrets.env.example",
+    "wrapper_runtime": {
+      "c_abi_library_dir": "lib",
+      "c_abi_header_dir": "include",
+      "daemon_sibling": "bin/ahri-tred"
+    }
+  },
+  "archive_path": "ahri-tre-0.8.3-x86_64-unknown-linux-gnu.tar"
+}

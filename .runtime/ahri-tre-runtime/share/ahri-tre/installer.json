@@ -1,0 +1,25 @@
+{
+  "schema_version": "ahri-tre.installer.v1",
+  "prefix_variable": "AHRI_TRE_PREFIX",
+  "install_script": "install.sh",
+  "install_directories": {
+    "binaries": "bin",
+    "runtime_binaries": "libexec/ahri-tre",
+    "libraries": "lib",
+    "headers": "include",
+    "support_files": "share/ahri-tre"
+  },
+  "runtime_library_path": {
+    "strategy": "generated-launchers-set-prefix-lib-before-exec",
+    "linux_env": "LD_LIBRARY_PATH",
+    "macos_env": "DYLD_LIBRARY_PATH",
+    "library_dir": "lib"
+  },
+  "profile_example": "share/ahri-tre/profile.env.example",
+  "secrets_example": "share/ahri-tre/secrets.env.example",
+  "wrapper_runtime": {
+    "c_abi_library_dir": "lib",
+    "c_abi_header_dir": "include",
+    "daemon_sibling": "bin/ahri-tred"
+  }
+}
