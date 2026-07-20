@@ -15,7 +15,8 @@ Roxygen: list(markdown = TRUE)
 Depends:
     R (>= 4.3)
 Imports:
-    jsonlite
+    jsonlite,
+    methods
 Suggests:
     arrow,
     devtools,

@@ -1,3 +1,7 @@
+tre_client_handle_is_valid <- function(handle) {
+  identical(typeof(handle), "externalptr") && !identical(handle, new("externalptr"))
+}
+
 AhriTreClient <- function(api = CApi(), runtime_config = RuntimeConfig(), check_compatibility = TRUE) {
   if (isTRUE(check_compatibility)) {
     check_protocol_compatibility(api)
@@ -10,11 +14,19 @@ AhriTreClient <- function(api = CApi(), runtime_config = RuntimeConfig(), check_
     isTRUE(runtime_config$never_start)
   )
   check_abi_status(created$status, api)
+  if (!tre_client_handle_is_valid(created$client)) {
+    abort_ahri_tre(
+      "AHRI TRE client handle could not be created; ensure the runtime and daemon are available, then create a new AhriTreClient().",
+      class = "ahri_tre_client_create_error"
+    )
+  }
   client <- list(api = api, handle = created$client)
   class(client) <- "ahri_tre_client"
   reg.finalizer(client$handle, function(handle) {
     # The handle may already be freed explicitly via close().
-    try(ahri_tre_client_free_bridge(api$library_path, handle), silent = TRUE)
+    if (tre_client_handle_is_valid(handle)) {
+      try(ahri_tre_client_free_bridge(api$library_path, handle), silent = TRUE)
+    }
   }, onexit = TRUE)
   client
 }
@@ -22,11 +34,20 @@ AhriTreClient <- function(api = CApi(), runtime_config = RuntimeConfig(), check_
 #' @export
 #' @method close ahri_tre_client
 close.ahri_tre_client <- function(con, ...) {
-  try(ahri_tre_client_free_bridge(con$api$library_path, con$handle), silent = TRUE)
+  if (tre_client_handle_is_valid(con$handle)) {
+    try(ahri_tre_client_free_bridge(con$api$library_path, con$handle), silent = TRUE)
+  }
   invisible(NULL)
 }
 
 execute_json <- function(client, request) {
+  if (!tre_client_handle_is_valid(client$handle)) {
+    abort_ahri_tre(
+      "AHRI TRE client handle is closed or invalid; create a new AhriTreClient().",
+      class = "ahri_tre_client_state_error"
+    )
+  }
+
   data <- request_bytes(request)
   executed <- ahri_tre_client_execute_protocol_json_bridge(
     client$api$library_path,
