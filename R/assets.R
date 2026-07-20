@@ -273,6 +273,48 @@ extract_dataset_data_rows <- function(result) {
   normalize_dataset_data_records(result$data)
 }
 
+extract_dataset_preview_rows <- function(result) {
+  payload <- result$object %||% result$data %||% result
+  preview <- if (is.list(payload) && is.list(payload$preview)) payload$preview else payload
+
+  if (is.list(preview) && is.list(preview$rows) && length(preview$rows) > 0L) {
+    row_vectors <- lapply(preview$rows, function(row) {
+      if (is.list(row)) {
+        unlist(row, use.names = FALSE)
+      } else {
+        as.character(row)
+      }
+    })
+
+    mat <- do.call(rbind, row_vectors)
+    df <- as.data.frame(mat, stringsAsFactors = FALSE)
+
+    if (is.list(preview$columns) && length(preview$columns) == ncol(df)) {
+      col_names <- vapply(preview$columns, function(col) {
+        if (is.list(col) && !is.null(col$name)) as.character(col$name[[1]]) else NA_character_
+      }, character(1), USE.NAMES = FALSE)
+      if (all(!is.na(col_names) & nzchar(col_names))) {
+        names(df) <- col_names
+      }
+    }
+
+    return(df)
+  }
+
+  if (is.list(preview) && is.list(preview$columns) && length(preview$columns) > 0L) {
+    col_names <- vapply(preview$columns, function(col) {
+      if (is.list(col) && !is.null(col$name)) as.character(col$name[[1]]) else NA_character_
+    }, character(1), USE.NAMES = FALSE)
+    if (all(!is.na(col_names) & nzchar(col_names))) {
+      empty_cols <- replicate(length(col_names), character(0), simplify = FALSE)
+      names(empty_cols) <- col_names
+      return(as.data.frame(empty_cols, stringsAsFactors = FALSE))
+    }
+  }
+
+  normalize_dataset_data_records(payload)
+}
+
 dataset_data <- function(client, study = NULL, dataset = NULL, limit = NULL, to = NULL, format = "json", compress = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
     "study" = study,
@@ -394,7 +436,7 @@ dataset_preview <- function(client, study = NULL, dataset = NULL, limit = NULL, 
     "width" = width,
     "format" = format
   )
-  tre_command_call(
+  result <- tre_command_call(
     client = client,
     kind = "dataset.preview",
     ...,
@@ -405,6 +447,10 @@ dataset_preview <- function(client, study = NULL, dataset = NULL, limit = NULL, 
     .status_and_purpose = "Preview dataset rows.",
     .function_name = "dataset_preview"
   )
+
+  # Keep row extraction behavior consistent with dataset_data.
+  result$rows <- extract_dataset_preview_rows(result)
+  result
 }
 
 dataset_search <- function(client, study = NULL, cursor = NULL, limit = NULL, width = NULL, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {

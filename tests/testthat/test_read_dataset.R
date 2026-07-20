@@ -151,3 +151,54 @@ test_that("read_dataset prefers Arrow IPC payload conversion when available", {
   expect_identical(rows$id[[1]], 42L)
   expect_true(rows$converted[[1]])
 })
+
+test_that("read_dataset falls back to dataset_preview when dataset_data is unsupported", {
+  client <- mock_client_for_read_dataset()
+
+  rows <- testthat::with_mocked_bindings(
+    dataset_data = function(client, study = NULL, dataset = NULL, limit = NULL, format = NULL, ...) {
+      stop("dataset_data failed: request envelope is invalid")
+    },
+    dataset_preview = function(client, study = NULL, dataset = NULL, limit = NULL, format = NULL, ...) {
+      list(
+        object = list(
+          preview = list(
+            columns = list(list(name = "id"), list(name = "value")),
+            rows = list(list("1", "alpha"), list("2", "beta"))
+          )
+        )
+      )
+    },
+    read_dataset(ds = client, study_name = "Study", dataset_name = "Dataset")
+  )
+
+  expect_identical(nrow(rows), 2L)
+  expect_identical(ncol(rows), 2L)
+  expect_identical(names(rows), c("id", "value"))
+  expect_identical(attr(rows, "read_mode"), "preview")
+})
+
+test_that("read_dataset preview fallback preserves columns when preview has zero rows", {
+  client <- mock_client_for_read_dataset()
+
+  rows <- testthat::with_mocked_bindings(
+    dataset_data = function(client, study = NULL, dataset = NULL, limit = NULL, format = NULL, ...) {
+      stop("dataset_data failed: request envelope is invalid")
+    },
+    dataset_preview = function(client, study = NULL, dataset = NULL, limit = NULL, format = NULL, ...) {
+      list(
+        object = list(
+          preview = list(
+            columns = list(list(name = "id"), list(name = "value")),
+            rows = list()
+          )
+        )
+      )
+    },
+    read_dataset(ds = client, study_name = "Study", dataset_name = "Dataset")
+  )
+
+  expect_identical(nrow(rows), 0L)
+  expect_identical(names(rows), c("id", "value"))
+  expect_identical(attr(rows, "read_mode"), "preview")
+})

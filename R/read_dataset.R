@@ -156,6 +156,55 @@ extract_rows_from_dataset_result <- function(result) {
   normalize_dataset_records(result$data)
 }
 
+extract_rows_from_dataset_preview_result <- function(result) {
+  payload <- result$object %||% result$data %||% result
+  preview <- if (is.list(payload) && is.list(payload$preview)) payload$preview else payload
+
+  if (is.list(preview) && is.list(preview$rows) && length(preview$rows) > 0L) {
+    row_vectors <- lapply(preview$rows, function(row) {
+      if (is.list(row)) {
+        unlist(row, use.names = FALSE)
+      } else {
+        as.character(row)
+      }
+    })
+    mat <- do.call(rbind, row_vectors)
+    df <- as.data.frame(mat, stringsAsFactors = FALSE)
+
+    if (is.list(preview$columns) && length(preview$columns) == ncol(df)) {
+      col_names <- vapply(preview$columns, function(col) {
+        if (is.list(col) && !is.null(col$name)) as.character(col$name[[1]]) else NA_character_
+      }, character(1), USE.NAMES = FALSE)
+      if (all(!is.na(col_names) & nzchar(col_names))) {
+        names(df) <- col_names
+      }
+    }
+
+    return(df)
+  }
+
+  if (is.list(preview) && is.list(preview$columns) && length(preview$columns) > 0L) {
+    col_names <- vapply(preview$columns, function(col) {
+      if (is.list(col) && !is.null(col$name)) as.character(col$name[[1]]) else NA_character_
+    }, character(1), USE.NAMES = FALSE)
+    if (all(!is.na(col_names) & nzchar(col_names))) {
+      empty_cols <- replicate(length(col_names), character(0), simplify = FALSE)
+      names(empty_cols) <- col_names
+      return(as.data.frame(empty_cols, stringsAsFactors = FALSE))
+    }
+  }
+
+  normalize_dataset_records(payload)
+}
+
+is_dataset_data_protocol_failure <- function(message) {
+  if (!is.character(message) || length(message) == 0L) {
+    return(FALSE)
+  }
+  grepl("request envelope is invalid", message[[1]], fixed = TRUE) ||
+    grepl("protocol request kind is not supported", message[[1]], fixed = TRUE)
+}
+
 #' Read dataset rows with optional version preference
 #'
 #' @param ds DataStore object.
@@ -206,7 +255,38 @@ read_dataset <- function(
     )
 
     if (inherits(result, "try-error")) {
-      errors <- c(errors, as.character(result))
+      err_message <- as.character(result)
+      errors <- c(errors, err_message)
+
+      # Runtime compatibility fallback: preview can remain supported even when
+      # full dataset.data transport is unavailable for this runtime/session.
+      if (is_dataset_data_protocol_failure(err_message)) {
+        preview_result <- try(
+          dataset_preview(
+            client,
+            study = study_name,
+            dataset = dataset_ref,
+            limit = 100,
+            format = "json"
+          ),
+          silent = TRUE
+        )
+
+        if (!inherits(preview_result, "try-error")) {
+          rows <- preview_result$rows
+          if (!is.data.frame(rows)) {
+            rows <- extract_rows_from_dataset_preview_result(preview_result)
+          }
+          attr(rows, "study_name") <- study_name
+          attr(rows, "dataset_name") <- dataset_name
+          attr(rows, "dataset_reference") <- dataset_ref
+          attr(rows, "read_mode") <- "preview"
+          return(rows)
+        }
+
+        errors <- c(errors, as.character(preview_result))
+      }
+
       next
     }
 
