@@ -9,87 +9,15 @@ preferred_study <- Sys.getenv("AHRI_TRE_TARGET_STUDY", unset = "Rfam_Database_Co
   if (is.null(lhs)) rhs else lhs
 }
 
-normalize_records <- function(value) {
-  if (is.null(value)) {
-    return(data.frame())
+format_try_error <- function(err) {
+  if (!inherits(err, "try-error")) {
+    return(as.character(err))
   }
-  if (is.data.frame(value)) {
-    return(value)
+  message <- conditionMessage(attr(err, "condition"))
+  if (is.character(message) && length(message) == 1L && nzchar(message)) {
+    return(message)
   }
-  if (is.character(value) && length(value) == 1L && nzchar(value)) {
-    parsed <- try(jsonlite::fromJSON(value, simplifyDataFrame = TRUE), silent = TRUE)
-    if (!inherits(parsed, "try-error")) {
-      return(normalize_records(parsed))
-    }
-  }
-  if (is.list(value)) {
-    for (candidate in c("items", "rows", "data", "result", "output", "body", "datasets", "records")) {
-      if (!is.null(value[[candidate]])) {
-        return(normalize_records(value[[candidate]]))
-      }
-    }
-    as_df <- try(
-      jsonlite::fromJSON(jsonlite::toJSON(value, auto_unbox = TRUE), simplifyDataFrame = TRUE),
-      silent = TRUE
-    )
-    if (!inherits(as_df, "try-error") && is.data.frame(as_df)) {
-      return(as_df)
-    }
-  }
-  data.frame()
-}
-
-extract_rows_from_dataset_data <- function(result) {
-  payloads <- result$payloads %||% list()
-  arrow_payload_index <- which(vapply(payloads, function(p) identical(p$kind, "arrow_ipc"), logical(1)))[1]
-  if (!is.na(arrow_payload_index)) {
-    converted <- try(arrow_ipc_to_table(payloads[[arrow_payload_index]]), silent = TRUE)
-    if (!inherits(converted, "try-error")) {
-      return(as.data.frame(converted))
-    }
-    cat("[WARN] Arrow IPC payload detected but conversion failed; falling back to JSON body.\n")
-  }
-  normalize_records(result$data)
-}
-
-extract_rows_from_dataset_preview <- function(result) {
-  payload <- result$object %||% result$data %||% result
-  preview <- if (is.list(payload) && is.list(payload$preview)) payload$preview else payload
-
-  if (is.list(preview) && is.list(preview$rows) && length(preview$rows) > 0L) {
-    row_vectors <- lapply(preview$rows, function(r) {
-      if (is.list(r)) {
-        unlist(r, use.names = FALSE)
-      } else {
-        as.character(r)
-      }
-    })
-    mat <- do.call(rbind, row_vectors)
-    df <- as.data.frame(mat, stringsAsFactors = FALSE)
-
-    if (is.list(preview$columns) && length(preview$columns) == ncol(df)) {
-      col_names <- vapply(preview$columns, function(col) {
-        if (is.list(col) && !is.null(col$name)) as.character(col$name[[1]]) else NA_character_
-      }, character(1), USE.NAMES = FALSE)
-      if (length(col_names) == ncol(df) && all(!is.na(col_names) & nzchar(col_names))) {
-        names(df) <- col_names
-      }
-    }
-
-    return(df)
-  }
-
-  if (is.list(preview) && is.list(preview$columns) && length(preview$columns) > 0L) {
-    col_names <- vapply(preview$columns, function(col) {
-      if (is.list(col) && !is.null(col$name)) as.character(col$name[[1]]) else NA_character_
-    }, character(1), USE.NAMES = FALSE)
-    if (all(!is.na(col_names) & nzchar(col_names))) {
-      empty_df <- as.data.frame(setNames(replicate(length(col_names), character(0), simplify = FALSE), col_names), stringsAsFactors = FALSE)
-      return(empty_df)
-    }
-  }
-
-  normalize_records(payload)
+  as.character(err)
 }
 
 lake_path_writable <- function(path) {
@@ -108,48 +36,21 @@ probe_rows_preflight <- function(client, study, dataset_names) {
   }
 
   probe_name <- dataset_names[[1]]
-  row_read <- try(
-    dataset_data(
-      client,
-      study = study,
-      dataset = probe_name,
-      limit = 1,
-      format = "json"
-    ),
-    silent = TRUE
-  )
+  row_read <- try(read_dataset(client, study, probe_name), silent = TRUE)
   if (!inherits(row_read, "try-error")) {
-    rows <- row_read$rows
-    if (!is.data.frame(rows)) {
-      rows <- extract_rows_from_dataset_data(row_read)
-    }
-    if (is.data.frame(rows)) {
-      return(list(ok = TRUE, method = "dataset_data", dataset = probe_name, rows = nrow(rows), cols = ncol(rows)))
-    }
-  }
-
-  preview_read <- try(
-    dataset_preview(
-      client,
-      study = study,
+    return(list(
+      ok = TRUE,
+      method = attr(row_read, "read_mode") %||% "dataset_data",
       dataset = probe_name,
-      limit = 1,
-      format = "json"
-    ),
-    silent = TRUE
-  )
-  if (!inherits(preview_read, "try-error")) {
-    rows <- extract_rows_from_dataset_preview(preview_read)
-    return(list(ok = TRUE, method = "dataset_preview", dataset = probe_name, rows = nrow(rows), cols = ncol(rows)))
+      rows = nrow(row_read),
+      cols = ncol(row_read)
+    ))
   }
 
   list(
     ok = FALSE,
     dataset = probe_name,
-    reason = paste0(
-      "dataset_data error: ", as.character(row_read),
-      " | dataset_preview error: ", as.character(preview_read)
-    )
+    reason = format_try_error(row_read)
   )
 }
 
@@ -296,43 +197,15 @@ if (!file.exists(manifest)) {
         print(metadata_df)
       }
 
-      rows <- NULL
-      row_read <- try(
-        dataset_data(
-          client,
-          study = target,
-          dataset = nm,
-          limit = NULL,
-          format = "json"
-        ),
-        silent = TRUE
-      )
-      if (!inherits(row_read, "try-error")) {
-        rows <- row_read$rows
-        if (!is.data.frame(rows)) {
-          rows <- extract_rows_from_dataset_data(row_read)
-        }
-      } else {
-        cat("[WARN] dataset_data row read failed for ", nm, ": ", as.character(row_read), "\n", sep = "")
+      rows <- try(read_dataset(client, target, nm), silent = TRUE)
+      if (inherits(rows, "try-error")) {
+        cat("[WARN] Row read failed for dataset ", nm, ": ", format_try_error(rows), "\n", sep = "")
+        next
       }
 
-      if (!is.data.frame(rows)) {
-        preview_read <- try(
-          dataset_preview(
-            client,
-            study = target,
-            dataset = nm,
-            limit = 100,
-            format = "json"
-          ),
-          silent = TRUE
-        )
-        if (inherits(preview_read, "try-error")) {
-          cat("[WARN] Row read failed for dataset ", nm, ": ", as.character(preview_read), "\n", sep = "")
-          next
-        }
-        rows <- extract_rows_from_dataset_preview(preview_read)
-        cat("[INFO] Row read fallback used for dataset ", nm, ": dataset_preview\n", sep = "")
+      read_mode <- attr(rows, "read_mode") %||% "dataset_data"
+      if (!identical(read_mode, "dataset_data")) {
+        cat("[INFO] Row read fallback used for dataset ", nm, ": ", read_mode, "\n", sep = "")
       }
 
       total_rows_read <- total_rows_read + nrow(rows)
