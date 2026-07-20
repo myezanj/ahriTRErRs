@@ -94,6 +94,36 @@ Current runtime behavior in this workspace matters for the ingest examples:
   package-function ingest paths and now surface backend lake permission errors
   explicitly.
 
+## RFAM Row-Read Status
+
+Latest backend handoff report:
+
+- `docs/rfam_row_read_backend_handoff_2026-07-20.md`
+
+Current validation snapshot:
+
+- Strict row-read validation (`inst/examples/validate_row_read_strict.r`) fails
+  for `Rfam_Database_Collection` because no RFAM dataset rows are currently
+  readable in this backend state.
+- Relaxed diagnostics (`inst/examples/read_rfam.r` with
+  `AHRI_TRE_ROW_PREFLIGHT_FAIL_FAST=false` and
+  `AHRI_TRE_ENFORCE_ROW_READ=false`) enumerate all affected RFAM datasets and
+  missing DuckLake tables.
+- Client-side row-read checks and fail-fast controls are implemented and
+  working; remaining remediation is backend table availability/materialization.
+
+## Package Scan Status
+
+Latest package-wide scan report:
+
+- `docs/package_scan_2026-07-20.md`
+
+Current quality-gate snapshot:
+
+- Static workspace diagnostics: clean
+- `testthat::test_local(".")`: 590 passed, 0 failed, 0 warnings, 1 skipped
+- `rcmdcheck` (`--no-manual`): 0 errors, 0 warnings, 0 notes
+
 ## Next Steps
 
 - Keep CI contract smoke coverage in sync with runtime release updates and
