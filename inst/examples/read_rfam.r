@@ -1,3 +1,9 @@
+if ("package:ahriTRErRs" %in% search()) {
+  try(detach("package:ahriTRErRs", unload = TRUE, character.only = TRUE), silent = TRUE)
+}
+if ("ahriTRErRs" %in% loadedNamespaces()) {
+  try(unloadNamespace("ahriTRErRs"), silent = TRUE)
+}
 suppressPackageStartupMessages(library(ahriTRErRs))
 if (file.exists(".env")) readRenviron(".env")
 options(ahriTRErRs.return_mode = "data.frame")
