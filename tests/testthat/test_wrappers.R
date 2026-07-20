@@ -288,3 +288,78 @@ test_that("wrapper data can be forced to json mode", {
   expect_true(is.list(captured$object))
   expect_true(is.data.frame(captured$data_frame))
 })
+
+test_that("wrapper data respects AHRI_TRE_R_RETURN_MODE when option is unset", {
+  withr::local_options(list(ahriTRErRs.return_mode = NULL))
+  withr::local_envvar(c(AHRI_TRE_R_RETURN_MODE = "object"))
+
+  captured <- testthat::with_mocked_bindings(
+    execute_json = function(client, request) {
+      list(
+        envelope = list(
+          ok = TRUE,
+          kind = request$kind,
+          data = list(rows = list(list(id = 6L, label = "zeta")))
+        ),
+        payloads = list()
+      )
+    },
+    dataset_list(list(client = "ok"), format = "json")
+  )
+
+  expect_true(is.list(captured$data))
+  expect_true(is.data.frame(captured$data_frame))
+  expect_identical(captured$data$rows[[1]]$id[[1]], 6L)
+})
+
+test_that("wrapper return_mode aliases normalize as expected", {
+  aliases <- list(df = "data.frame", dataframe = "data.frame", raw = "object", string = "json")
+
+  for (alias in names(aliases)) {
+    withr::local_options(list(ahriTRErRs.return_mode = alias))
+
+    captured <- testthat::with_mocked_bindings(
+      execute_json = function(client, request) {
+        list(
+          envelope = list(
+            ok = TRUE,
+            kind = request$kind,
+            data = list(rows = list(list(id = 7L, label = alias)))
+          ),
+          payloads = list()
+        )
+      },
+      dataset_list(list(client = "ok"), format = "json")
+    )
+
+    expected <- aliases[[alias]]
+    if (identical(expected, "data.frame")) {
+      expect_true(is.data.frame(captured$data), info = alias)
+    } else if (identical(expected, "object")) {
+      expect_true(is.list(captured$data), info = alias)
+    } else if (identical(expected, "json")) {
+      expect_true(is.character(captured$data), info = alias)
+    }
+  }
+})
+
+test_that("invalid wrapper return_mode falls back to data.frame", {
+  withr::local_options(list(ahriTRErRs.return_mode = "banana"))
+
+  captured <- testthat::with_mocked_bindings(
+    execute_json = function(client, request) {
+      list(
+        envelope = list(
+          ok = TRUE,
+          kind = request$kind,
+          data = list(rows = list(list(id = 8L, label = "fallback")))
+        ),
+        payloads = list()
+      )
+    },
+    dataset_list(list(client = "ok"), format = "json")
+  )
+
+  expect_true(is.data.frame(captured$data))
+  expect_identical(captured$data$label[[1]], "fallback")
+})
