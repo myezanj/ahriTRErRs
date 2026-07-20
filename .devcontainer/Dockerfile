@@ -2,7 +2,7 @@
 FROM rocker/r-ver:4.4.2
 
 ARG AHRI_TRE_RELEASE_TAG=v0.8.3
-ARG AHRI_TRE_RELEASE_REPOSITORY=AHRIORG/ahri-tre-rs
+ARG AHRI_TRE_RELEASE_REPOSITORY=myezanj/ahri-tre-rs
 ARG AHRI_TRE_ALLOW_LATEST_FALLBACK=1
 ARG AHRI_TRE_RUNTIME_OPTIONAL=1
 ARG AHRI_TRE_RUNTIME_LOCAL_ARCHIVE=
@@ -15,9 +15,11 @@ ENV LD_LIBRARY_PATH="${AHRI_TRE_RUNTIME_ROOT}/lib:${LD_LIBRARY_PATH}"
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         ca-certificates \
+        cifs-utils \
         curl \
         git \
         jq \
+        keyutils \
         libcurl4-openssl-dev \
         libssl-dev \
         libxml2-dev \
@@ -26,7 +28,9 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY .devcontainer/install_ahri_tre_runtime.sh /usr/local/bin/install_ahri_tre_runtime
+COPY .devcontainer/devcontainer_startup.sh /usr/local/bin/devcontainer_startup.sh
 COPY .devcontainer/runtime/ /tmp/ahri-tre-runtime-cache/
+RUN chmod +x /usr/local/bin/devcontainer_startup.sh
 RUN --mount=type=secret,id=github_token,required=false \
     GITHUB_TOKEN="$(cat /run/secrets/github_token 2>/dev/null || true)" \
     AHRI_TRE_RELEASE_TAG="${AHRI_TRE_RELEASE_TAG}" \
@@ -44,9 +48,9 @@ RUN printf '%s\n' \
         'export LD_LIBRARY_PATH="/opt/ahri-tre-runtime/lib:${LD_LIBRARY_PATH:-}"' \
         > /etc/profile.d/ahri-tre-runtime.sh
 
-COPY DESCRIPTION /tmp/ahri-tre-r/DESCRIPTION
+COPY DESCRIPTION /tmp/ahriTRErRs/DESCRIPTION
 RUN bash -lc 'for i in 1 2 3; do install2.r --error remotes && exit 0; echo "retrying remotes install ($i/3)"; sleep 5; done; exit 1'
-RUN R -q -e "remotes::install_deps('/tmp/ahri-tre-r', dependencies = TRUE, upgrade = 'never')"
+RUN R -q -e "remotes::install_deps('/tmp/ahriTRErRs', dependencies = TRUE, upgrade = 'never')"
 
 RUN useradd -m -s /bin/bash vscode \
     && mkdir -p /home/vscode/.vscode-server \
@@ -54,5 +58,13 @@ RUN useradd -m -s /bin/bash vscode \
     && echo "vscode ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/vscode \
     && chmod 0440 /etc/sudoers.d/vscode
 
+RUN printf '%s\n' \
+        'R_LIBS_USER=~/R/x86_64-pc-linux-gnu-library/4.4' \
+        > /home/vscode/.Renviron \
+    && printf '%s\n' \
+        '.libPaths(unique(c(Sys.getenv("R_LIBS_USER"), .libPaths())))' \
+        > /home/vscode/.Rprofile \
+    && chown vscode:vscode /home/vscode/.Renviron /home/vscode/.Rprofile
+
 USER vscode
-WORKDIR /workspaces/ahri-tre-r
+WORKDIR /workspaces/ahriTRErRs

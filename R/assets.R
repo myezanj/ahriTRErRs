@@ -254,7 +254,26 @@ datafile_search <- function(client, study = NULL, cursor = NULL, limit = NULL, w
   )
 }
 
-dataset_data <- function(client, study = NULL, dataset = NULL, limit = NULL, to = NULL, format = NULL, compress = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
+normalize_dataset_data_records <- function(value) {
+  # Reuse read_dataset's normalization helper to keep parsing behavior consistent.
+  normalize_dataset_records(value)
+}
+
+extract_dataset_data_rows <- function(result) {
+  payloads <- result$payloads %||% list()
+  arrow_payload_index <- which(vapply(payloads, function(p) identical(p$kind, "arrow_ipc"), logical(1)))[1]
+
+  if (!is.na(arrow_payload_index)) {
+    converted <- try(arrow_ipc_to_table(payloads[[arrow_payload_index]]), silent = TRUE)
+    if (!inherits(converted, "try-error")) {
+      return(as.data.frame(converted))
+    }
+  }
+
+  normalize_dataset_data_records(result$data)
+}
+
+dataset_data <- function(client, study = NULL, dataset = NULL, limit = NULL, to = NULL, format = "json", compress = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
     "study" = study,
     "dataset" = dataset,
@@ -263,7 +282,7 @@ dataset_data <- function(client, study = NULL, dataset = NULL, limit = NULL, to 
     "format" = format,
     "compress" = compress
   )
-  tre_command_call(
+  result <- tre_command_call(
     client = client,
     kind = "dataset.data",
     ...,
@@ -274,6 +293,10 @@ dataset_data <- function(client, study = NULL, dataset = NULL, limit = NULL, to 
     .status_and_purpose = "Read or export dataset data.",
     .function_name = "dataset_data"
   )
+
+  # Ensure dataset rows are directly retrievable from wrapper output.
+  result$rows <- extract_dataset_data_rows(result)
+  result
 }
 
 dataset_delete <- function(client, study = NULL, dataset = NULL, version = NULL, reason = NULL, actor = NULL, cascade = NULL, force = NULL, dry_run = NULL, yes = NULL, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {

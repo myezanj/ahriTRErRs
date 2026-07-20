@@ -1,7 +1,7 @@
 test_that("protocol ranges overlap only when compatible", {
-  expect_true(ahritre:::protocol_ranges_overlap("0.1.0", "0.1.999", "0.1.0", "0.1.0"))
-  expect_true(ahritre:::protocol_ranges_overlap("0.1.0", "0.1.999", "0.1.5", "0.2.0"))
-  expect_false(ahritre:::protocol_ranges_overlap("0.1.0", "0.1.999", "0.2.0", "0.2.999"))
+  expect_true(ahriTRErRs:::protocol_ranges_overlap("1.0.0", "1.0.999", "1.0.0", "1.0.0"))
+  expect_true(ahriTRErRs:::protocol_ranges_overlap("1.0.0", "1.0.999", "1.0.5", "1.1.0"))
+  expect_false(ahriTRErRs:::protocol_ranges_overlap("1.0.0", "1.0.999", "2.0.0", "2.0.999"))
 })
 
 test_that("artifact discovery requires an explicit runtime root", {

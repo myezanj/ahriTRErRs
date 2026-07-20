@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for contributing to ahri-tre-r.
+Thanks for contributing to ahriTRErRs.
 
 ## Development Setup
 

@@ -1,6 +1,6 @@
-# ahritre news
+# ahriTRErRs news
 
-## ahritre 0.1.0
+## ahriTRErRs 0.1.0
 
 - Initial package foundation for AHRI TRE runtime and protocol bindings.
 - Generated command wrappers grouped by domain.

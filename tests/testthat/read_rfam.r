@@ -1,4 +1,4 @@
-suppressPackageStartupMessages(library(ahritre))
+suppressPackageStartupMessages(library(ahriTRErRs))
 
 load_project_env <- function() {
   env_file <- ".env"

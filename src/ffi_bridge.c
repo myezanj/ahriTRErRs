@@ -395,7 +395,7 @@ static const R_CallMethodDef call_methods[] = {
     {NULL, NULL, 0}
 };
 
-void R_init_ahritre(DllInfo *dll) {
+void R_init_ahriTRErRs(DllInfo *dll) {
     R_registerRoutines(dll, NULL, call_methods, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }

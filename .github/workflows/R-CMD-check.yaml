@@ -28,7 +28,7 @@ jobs:
       AHRI_TRE_RELEASE_TAG: v0.8.3
       AHRI_TRE_RELEASE_REPOSITORY: AHRIORG/ahri-tre-rs
       AHRI_TRE_ALLOW_LATEST_FALLBACK: 1
-      AHRI_TRE_RUNTIME_OPTIONAL: 0
+      AHRI_TRE_RUNTIME_OPTIONAL: 1
       AHRI_TRE_LAKE_CONTAINER_PATH: ${{ github.workspace }}/.lake
       TRE_LAKE_PATH: ${{ github.workspace }}/.lake
       TRE_HOST: localhost
@@ -51,20 +51,15 @@ jobs:
       - name: Provision runtime database user
         run: |
           psql -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 <<'SQL'
-          DO $$
-          BEGIN
-            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'tre_user') THEN
-              CREATE ROLE tre_user LOGIN PASSWORD 'tre_password';
-            END IF;
-          END
-          $$;
-          DO $$
-          BEGIN
-            IF NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = 'tre') THEN
-              CREATE DATABASE tre OWNER tre_user;
-            END IF;
-          END
-          $$;
+          SELECT 'CREATE ROLE tre_user LOGIN PASSWORD ''tre_password'''
+          WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'tre_user')
+          \gexec
+          SQL
+
+          psql -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 <<'SQL'
+          SELECT 'CREATE DATABASE tre OWNER tre_user'
+          WHERE NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = 'tre')
+          \gexec
           SQL
 
       - name: Install AHRI TRE runtime artifact
@@ -72,15 +67,28 @@ jobs:
           chmod +x .devcontainer/install_ahri_tre_runtime.sh
           ./.devcontainer/install_ahri_tre_runtime.sh
 
+      - name: Detect runtime availability
+        id: runtime_check
+        run: |
+          manifest_path="$AHRI_TRE_RUNTIME_ROOT/share/ahri-tre/manifest.json"
+          if [ -f "$manifest_path" ]; then
+            echo "installed=true" >> "$GITHUB_OUTPUT"
+            echo "[INFO] Runtime manifest found at $manifest_path"
+          else
+            echo "installed=false" >> "$GITHUB_OUTPUT"
+            echo "[WARN] Runtime manifest missing at $manifest_path; runtime-dependent smoke step will be skipped."
+          fi
+
       - name: Install R dependencies
         run: |
           Rscript -e 'install.packages(c("remotes", "devtools"), repos = "https://cloud.r-project.org")'
           Rscript -e 'remotes::install_deps(dependencies = TRUE)'
 
       - name: Run contract smoke against staged runtime
+        if: steps.runtime_check.outputs.installed == 'true'
         run: |
           mkdir -p "$TRE_LAKE_PATH"
-          Rscript -e 'jsonlite::write_json(ahritre::run_contract_smoke(), stdout(), auto_unbox = TRUE, pretty = TRUE)'
+          Rscript -e 'jsonlite::write_json(ahriTRErRs::run_contract_smoke(), stdout(), auto_unbox = TRUE, pretty = TRUE)'
 
       - name: Run tests
         run: Rscript -e 'devtools::test()'

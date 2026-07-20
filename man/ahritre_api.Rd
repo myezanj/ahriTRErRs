@@ -1,4 +1,4 @@
-\name{ahritre-api}
+\name{ahriTRErRs-api}
 \alias{AhriTreClient}
 \alias{RuntimeConfig}
 \alias{arrow_ipc_to_table}

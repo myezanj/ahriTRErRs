@@ -1,6 +1,6 @@
 # AHRI TRE R Binding Handoff
 
-This is a seed for the future external `ahri-tre-r` repository created from
+This is a seed for the future external `ahriTRErRs` repository created from
 ADR-0005 and the shared binding-repository seed contract:
 
 - `docs/book/src/binding-repository-seed-contract.md`
@@ -18,8 +18,8 @@ Run the shared contract smoke path against a staged or released runtime
 artifact with:
 
 ```bash
-AHRI_TRE_RUNTIME_ROOT=/workspaces/ahri-tre-r/dist/ahri-tre-dev \
-  R -q -e 'jsonlite::write_json(ahritre::run_contract_smoke(), stdout(), auto_unbox = TRUE, pretty = TRUE)'
+AHRI_TRE_RUNTIME_ROOT=/workspaces/ahriTRErRs/dist/ahri-tre-dev \
+  R -q -e 'jsonlite::write_json(ahriTRErRs::run_contract_smoke(), stdout(), auto_unbox = TRUE, pretty = TRUE)'
 ```
 
 The smoke path loads the packaged C ABI, checks protocol compatibility,
@@ -54,16 +54,16 @@ R-specific helpers.
 ## Development Container
 
 The devcontainer runs R with a sibling PostgreSQL service. It exports
-`AHRI_TRE_LAKE_CONTAINER_PATH=/workspaces/ahri-tre-r/.lake` and maps
+`AHRI_TRE_LAKE_CONTAINER_PATH=/workspaces/ahriTRErRs/.lake` and maps
 `TRE_LAKE_PATH` to the same container-visible location. Keep host-only paths out
 of runtime code and diagnostics.
 
-Committed defaults live in `.devcontainer/.env.example`. Developers may copy it
-to `.devcontainer/.env` for local overrides; that live env file is ignored and
-must remain uncommitted.
+The devcontainer reads defaults from `.devcontainer/.env`. Developers should
+edit that file for local overrides; `.devcontainer/.env` is ignored and must
+remain uncommitted.
 
 The container image installs the `v0.8.3` AHRI TRE runtime release from
-`AHRIORG/ahri-tre-rs`, selecting the Linux artifact that matches `uname -m`, and
+`myezanj/ahri-tre-rs`, selecting the Linux artifact that matches `uname -m`, and
 exports `AHRI_TRE_RUNTIME_ROOT=/opt/ahri-tre-runtime`. If the release is
 private, the devcontainer build requires `GITHUB_TOKEN` in the build
 environment. Set `AHRI_TRE_RELEASE_REPOSITORY` in `.devcontainer/.env` if
@@ -73,6 +73,26 @@ For offline/private development where release access is unavailable, stage a
 runtime archive under `.devcontainer/runtime/`. The installer attempts local
 archive install before GitHub release download and will verify checksums when
 an adjacent `.sha256` or `.sha256sum` file is present.
+
+## Runtime Ingest Caveats
+
+Current runtime behavior in this workspace matters for the ingest examples:
+
+- `ingest_dataset_sql()` now falls back correctly through the package layer,
+  but the active runtime/CLI still reports `workflow not implemented` for the
+  `ingest dataset from-sql` path with source connection inputs.
+- `ingest_dataset_table()` and `ingest_datafile()` are supported wrapper
+  paths, but both currently fail later with `lake filesystem operation failed:
+  Permission denied (os error 13)` when the backend cannot write staged data
+  into the configured lake.
+- `inst/examples/insert_rfam.r` is intentionally on the supported staged-file
+  path only. It expects staged RFAM files under `AHRI_TRE_TABLE_DIR` or the
+  example's auto-discovered directories, and exits non-zero when no input files
+  are present.
+- `inst/examples/insert_rfamseq_chunks.r` and
+  `inst/examples/ingest_file_example.r` are also aligned to supported
+  package-function ingest paths and now surface backend lake permission errors
+  explicitly.
 
 ## Next Steps
 

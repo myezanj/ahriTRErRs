@@ -1,4 +1,4 @@
-# ahri-tre-r
+# ahriTRErRs
 
 Seed repository for the future AHRI TRE R binding.
 
@@ -7,7 +7,7 @@ Seed repository for the future AHRI TRE R binding.
 Install from GitHub:
 
 ```r
-remotes::install_github("AHRIORG/ahri-tre-r")
+remotes::install_github("myezanj/ahriTRErRs")
 ```
 
 This package is intentionally small. It demonstrates how an R package should
@@ -23,7 +23,7 @@ headers, or a local `target/` directory.
 ## Runtime Artifact Delivery
 
 Runtime artifacts are distributed through GitHub Releases in
-`AHRIORG/ahri-tre-rs` as architecture-specific archives. This repository does
+`myezanj/ahri-tre-rs` as architecture-specific archives. This repository does
 not bundle runtime binaries inside the R package.
 
 Ordinary users should install a matching runtime archive for their platform,
@@ -47,12 +47,12 @@ share/ahri-tre/manifest.json
 
 The devcontainer exports:
 
-- `AHRI_TRE_LAKE_CONTAINER_PATH=/workspaces/ahri-tre-r/.lake`
-- `TRE_LAKE_PATH=/workspaces/ahri-tre-r/.lake`
+- `AHRI_TRE_LAKE_CONTAINER_PATH=/workspaces/ahriTRErRs/.lake`
+- `TRE_LAKE_PATH=/workspaces/ahriTRErRs/.lake`
 
-The devcontainer reads committed defaults from `.devcontainer/.env.example`.
-Copy it to `.devcontainer/.env` only when you need local overrides; the live
-`.env` file is ignored and should not be committed.
+The devcontainer reads defaults from `.devcontainer/.env`.
+Edit that file directly when you need local overrides; `.devcontainer/.env` is
+ignored and should not be committed.
 
 It also installs the AHRI TRE `v0.8.3` runtime release for the container
 architecture and exports `AHRI_TRE_RUNTIME_ROOT=/opt/ahri-tre-runtime`. Set
@@ -89,6 +89,33 @@ Run full package checks before publishing changes:
 
 ```r
 devtools::check(document = FALSE, error_on = "warning")
+```
+
+## Wrapper Return Values
+
+All generated command wrappers return an `ahri_tre_wrapper_result` object.
+
+Key fields:
+
+- `data`: parsed R object for the command response payload.
+- `object`: alias of `data` for explicit object-oriented access.
+- `data_frame`: best-effort tabular projection when payload content is
+  tabular (`rows`, `items`, `datasets`, `studies`, etc.).
+- `envelope`: original protocol envelope.
+- `payloads`: attached binary payload descriptors (for example Arrow IPC).
+
+Example:
+
+```r
+result <- dataset_list(client, format = "json")
+
+# Native R object
+result$object
+
+# Tabular access when available
+if (!is.null(result$data_frame)) {
+  print(utils::head(result$data_frame))
+}
 ```
 
 ## Release Hygiene
@@ -136,8 +163,8 @@ Regenerate TRE command reference and schema-derived docs:
 Run the shared binding_contract smoke path against a staged package with:
 
 ```bash
-AHRI_TRE_RUNTIME_ROOT=/workspaces/ahri-tre-r/dist/ahri-tre-dev \
-  R -q -e 'jsonlite::write_json(ahritre::run_contract_smoke(), stdout(), auto_unbox = TRUE, pretty = TRUE)'
+AHRI_TRE_RUNTIME_ROOT=/workspaces/ahriTRErRs/dist/ahri-tre-dev \
+  R -q -e 'jsonlite::write_json(ahriTRErRs::run_contract_smoke(), stdout(), auto_unbox = TRUE, pretty = TRUE)'
 ```
 
 The smoke path loads the packaged C ABI, checks ABI/library/protocol

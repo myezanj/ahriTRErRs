@@ -1,4 +1,4 @@
-Package: ahritre
+Package: ahriTRErRs
 Title: R Bindings for the AHRI TRE Runtime and Protocol
 Version: 0.1.0
 Authors@R:
@@ -8,8 +8,8 @@ Description: Provides R bindings over the AHRI TRE stable C ABI and public
     execution, payload handling, and generated command wrappers for TRE
     interfaces.
 License: MIT + file LICENSE
-URL: https://github.com/AHRIORG/ahri-tre-r
-BugReports: https://github.com/AHRIORG/ahri-tre-r/issues
+URL: https://github.com/myezanj/ahriTRErRs
+BugReports: https://github.com/myezanj/ahriTRErRs/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Depends:
@@ -25,3 +25,4 @@ Suggests:
     withr
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.0.0
+RoxygenNote: 7.3.2

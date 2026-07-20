@@ -1,9 +1,11 @@
 #!/usr/bin/env Rscript
 
-# Minimal ahritre build/release script
+# Minimal ahriTRErRs build/release script
 # Ensures both .tar.gz and .zip release artifacts are created in ./release folder
 
 if (file.exists(".env")) readRenviron(".env")
+
+default_cran_repo <- "https://cloud.r-project.org"
 
 env_get_first <- function(keys, default = "") {
     for (key in keys) {
@@ -17,38 +19,128 @@ env_get_first <- function(keys, default = "") {
 
 initialize_release_env <- function() {
     # Avoid configure-time duckdb source builds during release unless explicitly requested.
-    skip_auto_duckdb <- env_get_first(c("AHRI_TRE_SKIP_AUTO_DUCKDB_INSTALL", "AHRITRE_SKIP_AUTO_DUCKDB_INSTALL", "AHRITRER_SKIP_AUTO_DUCKDB_INSTALL"), default = "")
+    skip_auto_duckdb <- env_get_first(c("AHRI_TRE_SKIP_AUTO_DUCKDB_INSTALL"), default = "")
     if (!nzchar(skip_auto_duckdb)) {
         Sys.setenv(AHRI_TRE_SKIP_AUTO_DUCKDB_INSTALL = "1")
-        Sys.setenv(AHRITRE_SKIP_AUTO_DUCKDB_INSTALL = "1")
-        Sys.setenv(AHRITRER_SKIP_AUTO_DUCKDB_INSTALL = "1")
         cat("[INFO] Defaulting AHRI_TRE_SKIP_AUTO_DUCKDB_INSTALL=1 for release build stability.\n")
     } else {
         cat("[INFO] Respecting AHRI_TRE_SKIP_AUTO_DUCKDB_INSTALL=", skip_auto_duckdb, "\n", sep = "")
     }
 }
 
+ensure_user_library_precedence <- function() {
+    user_lib <- Sys.getenv("R_LIBS_USER", "")
+    if (!nzchar(user_lib)) {
+        minor_parts <- strsplit(R.version$minor, ".", fixed = TRUE)[[1]]
+        user_lib <- file.path(
+            path.expand("~"),
+            "R",
+            paste0(R.version$platform, "-library"),
+            paste0(R.version$major, ".", minor_parts[[1]])
+        )
+        Sys.setenv(R_LIBS_USER = user_lib)
+    }
+
+    user_lib <- normalizePath(path.expand(user_lib), winslash = "/", mustWork = FALSE)
+    dir.create(user_lib, recursive = TRUE, showWarnings = FALSE)
+    .libPaths(unique(c(user_lib, .libPaths())))
+
+    invisible(user_lib)
+}
+
+ensure_packages <- function(packages, context_label = "dependencies") {
+    user_lib <- ensure_user_library_precedence()
+    packages <- unique(packages[nzchar(packages)])
+    if (length(packages) == 0) {
+        return(invisible(TRUE))
+    }
+
+    missing <- packages[!vapply(packages, requireNamespace, logical(1), quietly = TRUE)]
+    if (length(missing) == 0) {
+        cat("[INFO] ", context_label, " already installed (lib: ", user_lib, ")\n", sep = "")
+        return(invisible(TRUE))
+    }
+
+    cat("[INFO] Installing missing ", context_label, ": ", paste(missing, collapse = ", "), "\n", sep = "")
+    install_ok <- tryCatch({
+        install.packages(missing, repos = default_cran_repo)
+        all(vapply(missing, requireNamespace, logical(1), quietly = TRUE))
+    }, error = function(e) {
+        warning("Failed to install ", context_label, ": ", conditionMessage(e), call. = FALSE)
+        FALSE
+    })
+
+    if (isTRUE(install_ok)) {
+        cat("[INFO] Installed ", context_label, " successfully.\n", sep = "")
+    } else {
+        warning("Some ", context_label, " are still unavailable after install attempt.", call. = FALSE)
+    }
+
+    invisible(install_ok)
+}
+
+ensure_languageserver_package <- function() {
+    ensure_packages("languageserver", context_label = "languageserver")
+}
+
 ensure_roxygen_package <- function() {
+    ensure_packages("roxygen2", context_label = "roxygen2")
     suppressMessages({
         library(roxygen2)
     })
 }
 
 ensure_devtools_package <- function() {
+    ensure_packages("devtools", context_label = "devtools")
     suppressMessages({
         library(devtools)
     })
 }
 
-run_in_clean_rscript <- function(expr, context_label) {
+ensure_remotes_package <- function() {
+    ensure_packages("remotes", context_label = "remotes")
+}
+
+ensure_repo_dependencies <- function() {
+    ensure_remotes_package()
+    cat("[INFO] Ensuring package dependencies from DESCRIPTION are installed...\n")
+    install_ok <- tryCatch({
+        remotes::install_deps(".", dependencies = TRUE, upgrade = "never")
+        TRUE
+    }, error = function(e) {
+        warning("Could not install repository dependencies: ", conditionMessage(e), call. = FALSE)
+        FALSE
+    })
+
+    if (isTRUE(install_ok)) {
+        cat("[INFO] Repository dependencies are installed.\n")
+    }
+
+    invisible(install_ok)
+}
+
+run_in_clean_rscript <- function(expr, context_label, required_packages = character()) {
     rscript <- Sys.which("Rscript")
     if (!nzchar(rscript)) {
         stop("Rscript was not found on PATH; cannot run ", context_label, " in clean session.")
     }
-    script_path <- tempfile(pattern = "ahritre-clean-", fileext = ".R")
+    required_packages <- unique(c("languageserver", required_packages))
+    required_packages_literal <- paste(sprintf("'%s'", required_packages), collapse = ", ")
+    script_path <- tempfile(pattern = "ahriTRErRs-clean-", fileext = ".R")
     on.exit(unlink(script_path, force = TRUE), add = TRUE)
     writeLines(c(
         "if (file.exists('.env')) readRenviron('.env')",
+        "user_lib <- Sys.getenv('R_LIBS_USER', '')",
+        "if (!nzchar(user_lib)) {",
+        "  minor_parts <- strsplit(R.version$minor, '.', fixed = TRUE)[[1]]",
+        "  user_lib <- file.path(path.expand('~'), 'R', paste0(R.version$platform, '-library'), paste0(R.version$major, '.', minor_parts[[1]]))",
+        "  Sys.setenv(R_LIBS_USER = user_lib)",
+        "}",
+        "user_lib <- normalizePath(path.expand(user_lib), winslash = '/', mustWork = FALSE)",
+        "dir.create(user_lib, recursive = TRUE, showWarnings = FALSE)",
+        ".libPaths(unique(c(user_lib, .libPaths())))",
+        sprintf("required_pkgs <- c(%s)", required_packages_literal),
+        "for (pkg in required_pkgs) if (!requireNamespace(pkg, quietly = TRUE)) install.packages(pkg, repos = 'https://cloud.r-project.org')",
         expr
     ), con = script_path)
     status <- system2(rscript, c(script_path))
@@ -104,11 +196,12 @@ cleanup_src_artifacts <- function() {
 }
 
 run_document_task <- function() {
-    print_header("Documenting ahritre")
+    print_header("Documenting ahriTRErRs")
     print_step("Generating documentation")
     run_in_clean_rscript(
-        "if (!requireNamespace('roxygen2', quietly = TRUE)) stop('roxygen2 is required for --document'); roxygen2::roxygenise(package.dir='.')",
-        "Documentation generation"
+        "roxygen2::roxygenise(package.dir='.')",
+        "Documentation generation",
+        required_packages = c("roxygen2")
     )
     cat("  ✓ Documentation generated\n")
     print_step("Cleaning compiled artifacts left by devtools::document()")
@@ -117,42 +210,42 @@ run_document_task <- function() {
 }
 
 run_test_task <- function() {
-    print_header("Testing ahritre")
+    print_header("Testing ahriTRErRs")
     print_step("Running test suite")
     run_in_clean_rscript(
-        "if (!requireNamespace('devtools', quietly = TRUE)) stop('devtools is required for --test'); devtools::test()",
-        "Test suite"
+        "devtools::test()",
+        "Test suite",
+        required_packages = c("devtools")
     )
 }
 
 run_check_task <- function(strict = FALSE) {
-    print_header("Checking ahritre")
+    print_header("Checking ahriTRErRs")
     print_step("Running R CMD check")
     run_in_clean_rscript(
         sprintf(
             paste(
-                "if (!requireNamespace('devtools', quietly = TRUE)) stop('devtools is required for --check');",
                 "devtools::check(document = FALSE, manual = FALSE, error_on = '%s')"
             ),
             if (isTRUE(strict)) "warning" else "never"
         ),
-        "R CMD check"
+        "R CMD check",
+        required_packages = c("devtools")
     )
 }
 
 run_install_task <- function() {
-    print_header("Installing ahritre")
+    print_header("Installing ahriTRErRs")
     print_step("Installing package from source tree")
     run_in_clean_rscript(
-        "if (!requireNamespace('devtools', quietly = TRUE)) stop('devtools is required for --install'); devtools::install(upgrade = FALSE, dependencies = FALSE, quiet = FALSE)",
-        "Package install"
+        "devtools::install(upgrade = FALSE, dependencies = FALSE, quiet = FALSE)",
+        "Package install",
+        required_packages = c("devtools")
     )
 }
 
 run_site_task <- function() {
-    if (!requireNamespace("pkgdown", quietly = TRUE)) {
-        stop("pkgdown is required for --site. Install it with install.packages('pkgdown').")
-    }
+    ensure_packages("pkgdown", context_label = "pkgdown")
     print_header("Building pkgdown site")
     print_step("Building site")
     pkgdown::build_site()
@@ -208,6 +301,15 @@ if ("--help" %in% cli_args) {
 }
 
 initialize_release_env()
+ensure_languageserver_package()
+ensure_packages(c("roxygen2", "devtools"), context_label = "build tooling")
+
+auto_install_deps <- tolower(trimws(env_get_first(c("AHRI_TRE_AUTO_INSTALL_DEPS"), default = "true"))) %in% c("1", "true", "yes", "on")
+if (isTRUE(auto_install_deps)) {
+    ensure_repo_dependencies()
+} else {
+    cat("[INFO] Skipping dependency auto-install because AHRI_TRE_AUTO_INSTALL_DEPS is disabled.\n")
+}
 
 build_requested <- "--build" %in% cli_args
 strict_check <- "--strict-check" %in% cli_args
@@ -238,8 +340,6 @@ if (length(cli_args) > 0) {
     }
     if (!("--install" %in% cli_args)) {
         Sys.setenv(AHRI_TRE_AUTO_INSTALL_RELEASE = "false")
-        Sys.setenv(AHRITRE_AUTO_INSTALL_RELEASE = "false")
-        Sys.setenv(AHRITRER_AUTO_INSTALL_RELEASE = "false")
     }
 }
 
@@ -407,8 +507,8 @@ stage_packaged_local_pg <- function() {
 
 print_ducklake_runtime_diagnostics <- function() {
     cat("\n[INFO] DuckLake runtime settings:\n")
-    cat("  AHRI_TRE_DUCKLAKE_AUTO_MIGRATION=", env_get_first(c("AHRI_TRE_DUCKLAKE_AUTO_MIGRATION", "AHRITRE_DUCKLAKE_AUTO_MIGRATION", "AHRITRER_DUCKLAKE_AUTO_MIGRATION"), default = "<unset>"), "\n", sep = "")
-    cat("  AHRI_TRE_SKIP_DUCKLAKE_ATTACH=", env_get_first(c("AHRI_TRE_SKIP_DUCKLAKE_ATTACH", "AHRITRE_SKIP_DUCKLAKE_ATTACH", "AHRITRER_SKIP_DUCKLAKE_ATTACH"), default = "<unset>"), "\n", sep = "")
+    cat("  AHRI_TRE_DUCKLAKE_AUTO_MIGRATION=", env_get_first(c("AHRI_TRE_DUCKLAKE_AUTO_MIGRATION"), default = "<unset>"), "\n", sep = "")
+    cat("  AHRI_TRE_SKIP_DUCKLAKE_ATTACH=", env_get_first(c("AHRI_TRE_SKIP_DUCKLAKE_ATTACH"), default = "<unset>"), "\n", sep = "")
 
     duckdb_version <- tryCatch(
         as.character(utils::packageVersion("duckdb")),
@@ -453,7 +553,7 @@ desc <- read.dcf("DESCRIPTION")
 pkg <- desc[1, "Package"]
 ver <- desc[1, "Version"]
 
-print_header("Building ahritre Package")
+print_header("Building ahriTRErRs Package")
 cat("\nPackage:", pkg)
 cat("\nVersion:", ver)
 cat("\nPlatform:", .Platform$OS.type)
@@ -461,10 +561,10 @@ cat("\nR version:", R.version.string)
 print_ducklake_runtime_diagnostics()
 
 local_dir <- ".local"
-local_backup_dir <- file.path(normalizePath(".."), ".ahritre_local_backup")
+local_backup_dir <- file.path(normalizePath(".."), ".ahriTRErRs_local_backup")
 local_dir_moved <- FALSE
 rproj_user_dir <- ".Rproj.user"
-rproj_user_backup_dir <- file.path(normalizePath(".."), ".ahritre_rproj_user_backup")
+rproj_user_backup_dir <- file.path(normalizePath(".."), ".ahriTRErRs_rproj_user_backup")
 rproj_user_moved <- FALSE
 
 restore_local_dir <- function() {
@@ -659,12 +759,12 @@ cat("  ✓ Cleaned src/*.{o,so,dll}\n")
 
 print_step("Building source tarball (.tar.gz) into ./release")
 tarball <- NULL
-use_devtools_tarball <- tolower(trimws(env_get_first(c("AHRI_TRE_USE_DEVTOOLS_TARBALL", "AHRITRE_USE_DEVTOOLS_TARBALL", "AHRITRER_USE_DEVTOOLS_TARBALL"), default = "false"))) %in% c("1", "true", "yes", "on")
+use_devtools_tarball <- tolower(trimws(env_get_first(c("AHRI_TRE_USE_DEVTOOLS_TARBALL"), default = "false"))) %in% c("1", "true", "yes", "on")
 
 run_base_r_build <- function() {
     cat("  Building source tarball with staged R CMD build...\n")
 
-    stage_root <- tempfile("ahritre_build_stage_")
+    stage_root <- tempfile("ahriTRErRs_build_stage_")
     stage_repo <- file.path(stage_root, pkg)
     dir.create(stage_repo, recursive = TRUE, showWarnings = FALSE)
 
@@ -767,7 +867,7 @@ zipball <- NULL
 print_step("Building Windows binary (.zip)")
 if (.Platform$OS.type == "windows") {
     zipball <- tryCatch({
-        devtools::build(path = ".", binary = TRUE, vignettes = FALSE, manual = FALSE)
+        devtools::build(path = release_dir, binary = TRUE, vignettes = FALSE, manual = FALSE)
     }, error = function(e) {
         cat("  ERROR building Windows binary:", e$message, "\n")
         NULL
@@ -781,7 +881,10 @@ if (.Platform$OS.type == "windows") {
         # Try alternative build method
         cat("  Retrying with R CMD build --binary...\n")
         system2("R", c("CMD", "build", "--binary", "."), stdout = TRUE, stderr = TRUE)
-        zipball <- list.files(".", pattern = "\\.zip$", full.names = TRUE)
+        zipball <- list.files(release_dir, pattern = "\\.zip$", full.names = TRUE)
+        if (length(zipball) == 0) {
+            zipball <- list.files(".", pattern = "\\.zip$", full.names = TRUE)
+        }
         if (length(zipball) > 0) {
             zipball <- zipball[1]
             cat("  ✓ Windows binary created via R CMD build:", basename(zipball), "\n")
@@ -813,9 +916,13 @@ if (has_path_file(tarball)) {
 # Copy Windows binary
 if (has_path_file(zipball)) {
     target <- file.path(release_dir, basename(zipball))
-    file.copy(zipball, target, overwrite = TRUE)
+    if (normalizePath(zipball) != normalizePath(target)) {
+        file.copy(zipball, target, overwrite = TRUE)
+        cat("  ✓ Copied to ./release:", basename(zipball), "\n")
+    } else {
+        cat("  ✓ Windows binary already in ./release:", basename(zipball), "\n")
+    }
     release_artifacts <- c(release_artifacts, target)
-    cat("  ✓ Copied to ./release:", basename(zipball), "\n")
 }
 
 # Verify release artifacts exist in ./release
@@ -879,7 +986,7 @@ cat("\n")
 
 # Automatically install the freshly built artifact
 print_step("Installing package from freshly built artifact")
-auto_install_release <- tolower(trimws(env_get_first(c("AHRI_TRE_AUTO_INSTALL_RELEASE", "AHRITRE_AUTO_INSTALL_RELEASE", "AHRITRER_AUTO_INSTALL_RELEASE"), default = "true"))) %in% c("1", "true", "yes", "on")
+auto_install_release <- tolower(trimws(env_get_first(c("AHRI_TRE_AUTO_INSTALL_RELEASE"), default = "true"))) %in% c("1", "true", "yes", "on")
 
 install_target <- NULL
 install_type <- "source"

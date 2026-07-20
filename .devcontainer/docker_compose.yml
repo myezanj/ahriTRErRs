@@ -1,4 +1,4 @@
-name: ahri-tre-r-dev
+name: ahriTRErRs-dev
 
 services:
   r:
@@ -7,7 +7,7 @@ services:
       dockerfile: .devcontainer/Dockerfile
       args:
         AHRI_TRE_RELEASE_TAG: ${AHRI_TRE_RELEASE_TAG:-v0.8.3}
-        AHRI_TRE_RELEASE_REPOSITORY: ${AHRI_TRE_RELEASE_REPOSITORY:-AHRIORG/ahri-tre-rs}
+        AHRI_TRE_RELEASE_REPOSITORY: ${AHRI_TRE_RELEASE_REPOSITORY:-myezanj/ahri-tre-rs}
         AHRI_TRE_ALLOW_LATEST_FALLBACK: ${AHRI_TRE_ALLOW_LATEST_FALLBACK:-1}
         AHRI_TRE_RUNTIME_OPTIONAL: ${AHRI_TRE_RUNTIME_OPTIONAL:-1}
         AHRI_TRE_RUNTIME_LOCAL_ARCHIVE: ${AHRI_TRE_RUNTIME_LOCAL_ARCHIVE:-}
@@ -15,28 +15,34 @@ services:
       secrets:
         - github_token
     init: true
-    command: sleep infinity
+    user: root
+    privileged: true
+    command: /usr/local/bin/devcontainer_startup.sh
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
     depends_on:
       tre-postgres:
         condition: service_healthy
     env_file:
-      - .env.example
+      - .env
     environment:
-      AHRI_TRE_LAKE_CONTAINER_PATH: ${AHRI_TRE_LAKE_CONTAINER_PATH:-/workspaces/ahri-tre-r/.lake}
-      TRE_LAKE_PATH: ${AHRI_TRE_LAKE_CONTAINER_PATH:-/workspaces/ahri-tre-r/.lake}
+      AHRI_TRE_LAKE_CONTAINER_PATH: ${AHRI_TRE_LAKE_CONTAINER_PATH:-/workspaces/ahriTRErRs/.lake}
+      TRE_LAKE_PATH: ${AHRI_TRE_LAKE_CONTAINER_PATH:-/workspaces/ahriTRErRs/.lake}
       TRE_HOST: tre-postgres
       TRE_PORT: 5432
       TRE_DBNAME: ${TRE_DBNAME:-tre}
       TRE_USER: ${TRE_USER:-tre_user}
       TRE_PWD: ${TRE_PWD:-tre_password}
     volumes:
-      - ..:/workspaces/ahri-tre-r:cached
-      - tre-lake:${AHRI_TRE_LAKE_CONTAINER_PATH:-/workspaces/ahri-tre-r/.lake}
+      - ..:/workspaces/ahriTRErRs:cached
+      - tre-lake:${AHRI_TRE_LAKE_CONTAINER_PATH:-/workspaces/ahriTRErRs/.lake}
       - vscode-server:/home/vscode/.vscode-server
     networks:
       tre-net:
         aliases:
-          - ahri-tre-r-dev
+          - ahriTRErRs-dev
     expose:
       - "8080"
     extra_hosts:

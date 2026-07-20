@@ -1,5 +1,5 @@
-SUPPORTED_PROTOCOL_MIN <- "0.1.0"
-SUPPORTED_PROTOCOL_MAX <- "0.1.999"
+SUPPORTED_PROTOCOL_MIN <- "1.0.0"
+SUPPORTED_PROTOCOL_MAX <- "1.0.999"
 
 CompatibilityInfo <- function(api = CApi()) {
   info <- list(

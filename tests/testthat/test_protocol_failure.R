@@ -12,7 +12,7 @@ test_that("protocol failure envelopes produce safe summaries", {
 })
 
 test_that("request JSON is serialized as UTF-8 raw bytes", {
-  bytes <- ahritre:::request_bytes(list(kind = "runtime.status", body = list()))
+  bytes <- ahriTRErRs:::request_bytes(list(kind = "runtime.status", body = list()))
   expect_type(bytes, "raw")
   expect_match(rawToChar(bytes), '"kind":"runtime.status"', fixed = TRUE)
 })

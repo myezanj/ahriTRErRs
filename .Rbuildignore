@@ -8,3 +8,6 @@
 ^_pkgdown[.]yml$
 ^build_release[.]R$
 ^release($|/)
+^[.]runtime($|/)
+^ahriTRErRs[.]Rcheck($|/)
+^profile[.]env$

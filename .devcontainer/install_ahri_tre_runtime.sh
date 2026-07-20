@@ -2,7 +2,7 @@
 set -euo pipefail
 
 release_tag="${AHRI_TRE_RELEASE_TAG:-v0.8.3}"
-release_repository="${AHRI_TRE_RELEASE_REPOSITORY:-AHRIORG/ahri-tre-rs}"
+release_repository="${AHRI_TRE_RELEASE_REPOSITORY:-myezanj/ahri-tre-rs}"
 install_dir="${AHRI_TRE_RUNTIME_ROOT:-/opt/ahri-tre-runtime}"
 allow_latest_fallback="${AHRI_TRE_ALLOW_LATEST_FALLBACK:-1}"
 runtime_optional="${AHRI_TRE_RUNTIME_OPTIONAL:-0}"

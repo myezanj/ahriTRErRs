@@ -19,23 +19,23 @@ CApi <- function(artifact = NULL, library_path = NULL) {
 }
 
 ahri_tre_library_open <- function(path) {
-  .Call("ahri_tre_library_open", path, PACKAGE = "ahritre")
+  .Call("ahri_tre_library_open", path, PACKAGE = "ahriTRErRs")
 }
 
 ahri_tre_owned_string <- function(path, symbol_name) {
-  .Call("ahri_tre_owned_string", path, symbol_name, PACKAGE = "ahritre")
+  .Call("ahri_tre_owned_string", path, symbol_name, PACKAGE = "ahriTRErRs")
 }
 
 ahri_tre_status_message_bridge <- function(path, status) {
-  .Call("ahri_tre_status_message_bridge", path, status, PACKAGE = "ahritre")
+  .Call("ahri_tre_status_message_bridge", path, status, PACKAGE = "ahriTRErRs")
 }
 
 ahri_tre_result_response_json_bridge <- function(path, result) {
-  .Call("ahri_tre_result_response_json_bridge", path, result, PACKAGE = "ahritre")
+  .Call("ahri_tre_result_response_json_bridge", path, result, PACKAGE = "ahriTRErRs")
 }
 
 ahri_tre_result_free_bridge <- function(path, result) {
-  .Call("ahri_tre_result_free_bridge", path, result, PACKAGE = "ahritre")
+  .Call("ahri_tre_result_free_bridge", path, result, PACKAGE = "ahriTRErRs")
 }
 
 ahri_tre_runtime_call_bridge <- function(path, action, endpoint, binary, timeout, never_start) {
@@ -47,7 +47,7 @@ ahri_tre_runtime_call_bridge <- function(path, action, endpoint, binary, timeout
     binary,
     timeout,
     never_start,
-    PACKAGE = "ahritre"
+    PACKAGE = "ahriTRErRs"
   )
 }
 
@@ -59,28 +59,28 @@ ahri_tre_client_create_bridge <- function(path, endpoint, binary, timeout, never
     binary,
     timeout,
     never_start,
-    PACKAGE = "ahritre"
+    PACKAGE = "ahriTRErRs"
   )
 }
 
 ahri_tre_client_free_bridge <- function(path, client) {
-  .Call("ahri_tre_client_free_bridge", path, client, PACKAGE = "ahritre")
+  .Call("ahri_tre_client_free_bridge", path, client, PACKAGE = "ahriTRErRs")
 }
 
 ahri_tre_client_execute_protocol_json_bridge <- function(path, client, request) {
-  .Call("ahri_tre_client_execute_protocol_json_bridge", path, client, request, PACKAGE = "ahritre")
+  .Call("ahri_tre_client_execute_protocol_json_bridge", path, client, request, PACKAGE = "ahriTRErRs")
 }
 
 ahri_tre_result_payload_count_bridge <- function(path, result) {
-  .Call("ahri_tre_result_payload_count_bridge", path, result, PACKAGE = "ahritre")
+  .Call("ahri_tre_result_payload_count_bridge", path, result, PACKAGE = "ahriTRErRs")
 }
 
 ahri_tre_result_payload_descriptor_bridge <- function(path, result, index) {
-  .Call("ahri_tre_result_payload_descriptor_bridge", path, result, index, PACKAGE = "ahritre")
+  .Call("ahri_tre_result_payload_descriptor_bridge", path, result, index, PACKAGE = "ahriTRErRs")
 }
 
 ahri_tre_result_payload_bytes_bridge <- function(path, result, index) {
-  .Call("ahri_tre_result_payload_bytes_bridge", path, result, index, PACKAGE = "ahritre")
+  .Call("ahri_tre_result_payload_bytes_bridge", path, result, index, PACKAGE = "ahriTRErRs")
 }
 
 owned_string <- function(api, symbol) {

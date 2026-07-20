@@ -1,7 +1,7 @@
 wrapper_names_from_namespace <- function() {
-  exports <- getNamespaceExports("ahritre")
+  exports <- getNamespaceExports("ahriTRErRs")
   wrappers <- exports[vapply(exports, function(name) {
-    fn <- get(name, envir = asNamespace("ahritre"), mode = "function")
+    fn <- get(name, envir = asNamespace("ahriTRErRs"), mode = "function")
     fml <- names(formals(fn))
     length(fml) >= 4L &&
       identical(fml[[1]], "client") &&
@@ -80,4 +80,211 @@ test_that("protocol failures are converted to ahri_tre_protocol_error", {
     ),
     class = "ahri_tre_protocol_error"
   )
+})
+
+test_that("unsupported protocol kinds fall back to CLI", {
+  captured <- testthat::with_mocked_bindings(
+    execute_json = function(client, request) {
+      list(
+        envelope = list(
+          ok = FALSE,
+          kind = "protocol.unsupported",
+          error = list(message = "protocol request kind is not supported")
+        ),
+        payloads = list()
+      )
+    },
+    tre_execute_via_cli = function(kind, body) {
+      list(
+        envelope = list(ok = TRUE, kind = kind, data = list(rows = list(list(id = 7L, label = "zeta")))),
+        payloads = list()
+      )
+    },
+    dataset_list(list(client = "ok"), format = "json")
+  )
+
+  expect_true(is.data.frame(captured$data))
+  expect_identical(captured$data$id[[1]], 7L)
+  expect_identical(captured$data$label[[1]], "zeta")
+})
+
+test_that("no-live-session execute_json errors fall back to CLI", {
+  captured <- testthat::with_mocked_bindings(
+    execute_json = function(client, request) {
+      stop("no live session is selected; run session use")
+    },
+    tre_cli_try_activate_live_session = function() FALSE,
+    tre_execute_via_cli = function(kind, body) {
+      list(
+        envelope = list(ok = TRUE, kind = kind, data = list(rows = list(list(id = 8L, label = "theta")))),
+        payloads = list()
+      )
+    },
+    dataset_list(list(client = "ok"), format = "json")
+  )
+
+  expect_true(is.data.frame(captured$data))
+  expect_identical(captured$data$id[[1]], 8L)
+  expect_identical(captured$data$label[[1]], "theta")
+})
+
+test_that("no-live-session envelope returns empty data for read-like wrappers", {
+  expect_warning(
+    testthat::with_mocked_bindings(
+      execute_json = function(client, request) {
+        list(
+          envelope = list(
+            ok = FALSE,
+            kind = request$kind,
+            error = list(message = "no live session is selected")
+          ),
+          payloads = list()
+        )
+      },
+      tre_cli_try_activate_live_session = function() FALSE,
+      tre_execute_via_cli = function(kind, body) NULL,
+      dataset_list(list(client = "ok"), format = "json")
+    ),
+    "no live session is selected; returning empty result"
+  )
+})
+
+test_that("no-live-session envelope errors when soft handling is disabled", {
+  withr::local_options(list(ahriTRErRs.soft_no_live_session = FALSE))
+
+  expect_error(
+    testthat::with_mocked_bindings(
+      execute_json = function(client, request) {
+        list(
+          envelope = list(
+            ok = FALSE,
+            kind = request$kind,
+            error = list(message = "no live session is selected")
+          ),
+          payloads = list()
+        )
+      },
+      tre_cli_try_activate_live_session = function() FALSE,
+      tre_execute_via_cli = function(kind, body) NULL,
+      dataset_list(list(client = "ok"), format = "json")
+    ),
+    class = "ahri_tre_protocol_error"
+  )
+})
+
+test_that("CLI fallback quotes shell-sensitive argument values", {
+  args <- ahriTRErRs:::tre_cli_args_from_body(
+    "ingest.dataset.from-sql",
+    list(sql = "select * from Rfam.family", description = "mysql select all family")
+  )
+
+  expect_identical(args[[5]], "'select * from Rfam.family'")
+  expect_identical(args[[7]], "'mysql select all family'")
+})
+
+test_that("wrapper output coerces JSON string data to R objects", {
+  captured <- testthat::with_mocked_bindings(
+    execute_json = function(client, request) {
+      list(
+        envelope = list(
+          ok = TRUE,
+          kind = request$kind,
+          data = '{"rows":[{"id":1,"label":"alpha"}]}'
+        ),
+        payloads = list()
+      )
+    },
+    dataset_list(list(client = "ok"), format = "json")
+  )
+
+  expect_true(is.list(captured$object))
+  expect_true(is.data.frame(captured$data_frame))
+  expect_identical(captured$data_frame$id[[1]], 1L)
+  expect_identical(captured$data_frame$label[[1]], "alpha")
+})
+
+test_that("wrapper output exposes data.frame when payload is tabular list", {
+  captured <- testthat::with_mocked_bindings(
+    execute_json = function(client, request) {
+      list(
+        envelope = list(
+          ok = TRUE,
+          kind = request$kind,
+          data = list(rows = list(list(id = 2L, label = "beta")))
+        ),
+        payloads = list()
+      )
+    },
+    dataset_search(list(client = "ok"), format = "json")
+  )
+
+  expect_true(is.data.frame(captured$data_frame))
+  expect_identical(captured$data_frame$id[[1]], 2L)
+  expect_identical(captured$data_frame$label[[1]], "beta")
+})
+
+test_that("wrapper data defaults to data.frame when coercion is possible", {
+  captured <- testthat::with_mocked_bindings(
+    execute_json = function(client, request) {
+      list(
+        envelope = list(
+          ok = TRUE,
+          kind = request$kind,
+          data = list(rows = list(list(id = 3L, label = "gamma")))
+        ),
+        payloads = list()
+      )
+    },
+    dataset_list(list(client = "ok"), format = "json")
+  )
+
+  expect_true(is.data.frame(captured$data))
+  expect_identical(captured$data$id[[1]], 3L)
+  expect_identical(captured$data$label[[1]], "gamma")
+})
+
+test_that("wrapper data can be forced to object mode", {
+  withr::local_options(list(ahriTRErRs.return_mode = "object"))
+
+  captured <- testthat::with_mocked_bindings(
+    execute_json = function(client, request) {
+      list(
+        envelope = list(
+          ok = TRUE,
+          kind = request$kind,
+          data = list(rows = list(list(id = 4L, label = "delta")))
+        ),
+        payloads = list()
+      )
+    },
+    dataset_list(list(client = "ok"), format = "json")
+  )
+
+  expect_true(is.list(captured$data))
+  expect_true(is.data.frame(captured$data_frame))
+  expect_identical(captured$data$rows[[1]]$id[[1]], 4L)
+})
+
+test_that("wrapper data can be forced to json mode", {
+  withr::local_options(list(ahriTRErRs.return_mode = "json"))
+
+  captured <- testthat::with_mocked_bindings(
+    execute_json = function(client, request) {
+      list(
+        envelope = list(
+          ok = TRUE,
+          kind = request$kind,
+          data = list(rows = list(list(id = 5L, label = "epsilon")))
+        ),
+        payloads = list()
+      )
+    },
+    dataset_list(list(client = "ok"), format = "json")
+  )
+
+  expect_true(is.character(captured$data))
+  expect_length(captured$data, 1L)
+  expect_match(captured$data, '"rows"', fixed = TRUE)
+  expect_true(is.list(captured$object))
+  expect_true(is.data.frame(captured$data_frame))
 })

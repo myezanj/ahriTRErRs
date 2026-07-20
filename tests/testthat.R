@@ -1,4 +1,4 @@
 library(testthat)
-library(ahritre)
+library(ahriTRErRs)
 
-test_check("ahritre")
+test_check("ahriTRErRs")
