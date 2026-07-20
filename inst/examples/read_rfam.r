@@ -16,15 +16,10 @@ read_rows <- function(client, study, dataset, limit = NULL) {
     return(data_result$rows)
   }
 
-  preview_result <- try(dataset_preview(client, study = study, dataset = dataset, limit = limit %||% 100L, format = "json"), silent = TRUE)
-  if (!inherits(preview_result, "try-error") && is.data.frame(preview_result$rows)) {
-    attr(preview_result$rows, "read_mode") <- "dataset_preview"
-    return(preview_result$rows)
-  }
-
   data_msg <- if (inherits(data_result, "try-error")) format_try_error(data_result) else "dataset_data returned no rows"
-  preview_msg <- if (inherits(preview_result, "try-error")) format_try_error(preview_result) else "dataset_preview returned no rows"
-  stop(sprintf("dataset_data error: %s | dataset_preview error: %s", data_msg, preview_msg), call. = FALSE)
+  preview_result <- try(dataset_preview(client, study = study, dataset = dataset, limit = limit %||% 100L, format = "json"), silent = TRUE)
+  preview_msg <- if (inherits(preview_result, "try-error")) format_try_error(preview_result) else "dataset_preview diagnostic succeeded but dataset_data did not return rows"
+  stop(sprintf("dataset_data error: %s | dataset_preview diagnostic: %s", data_msg, preview_msg), call. = FALSE)
 }
 
 runtime_roots <- normalizePath(path.expand(unique(c(
@@ -105,9 +100,6 @@ for (nm in dataset_names) {
   if (inherits(rows, "try-error")) {
     cat("[WARN] Row read failed for dataset ", nm, ": ", format_try_error(rows), "\n", sep = "")
     next
-  }
-  if (!identical(attr(rows, "read_mode") %||% "dataset_data", "dataset_data")) {
-    cat("[INFO] Row read fallback used for dataset ", nm, ": ", attr(rows, "read_mode"), "\n", sep = "")
   }
   total_rows_read <- total_rows_read + nrow(rows)
   cat("[INFO] Row read for dataset ", nm, ": rows=", nrow(rows), ", cols=", ncol(rows), "\n", sep = "")
