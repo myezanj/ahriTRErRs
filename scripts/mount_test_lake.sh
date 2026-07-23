@@ -25,18 +25,20 @@ if [ ! -f "/workspaces/ahriTRErRs/.env" ]; then
 fi
 
 # Extract credentials from .env
-SAMBA_USERNAME=$(grep "^SAMBA_USERNAME=" /workspaces/ahriTRErRs/.env | cut -d'=' -f2 | tr -d '"')
-SAMBA_PASSWORD=$(grep "^SAMBA_PASSWORD=" /workspaces/ahriTRErRs/.env | cut -d'=' -f2 | tr -d '"')
+SAMBA_DOMAIN=$(grep "^SAMBA_DOMAIN=" /workspaces/ahriTRErRs/.devcontainer/.env | cut -d'=' -f2 | tr -d '"')
+SAMBA_USERNAME=$(grep "^SAMBA_USERNAME=" /workspaces/ahriTRErRs/.devcontainer/.env | cut -d'=' -f2 | tr -d '"')
+SAMBA_PASSWORD=$(grep "^SAMBA_PASSWORD=" /workspaces/ahriTRErRs/.devcontainer/.env | cut -d'=' -f2 | tr -d '"')
 
-if [ -z "$SAMBA_USERNAME" ] || [ -z "$SAMBA_PASSWORD" ]; then
-  echo "✗ Error: SAMBA_USERNAME or SAMBA_PASSWORD not found in .env"
+if [ -z "$SAMBA_DOMAIN" ] || [ -z "$SAMBA_USERNAME" ] || [ -z "$SAMBA_PASSWORD" ]; then
+  echo "✗ Error: SAMBA_DOMAIN, SAMBA_USERNAME, or SAMBA_PASSWORD not found in .env"
   exit 1
 fi
 
 echo "📋 Configuration:"
 echo "   Source:      $SMB_SOURCE"
 echo "   Mount Point: $MOUNT_POINT"
-echo "   Credentials: $SAMBA_USERNAME (from .env)"
+echo "   Domain:      $SAMBA_DOMAIN"
+echo "   Credentials: $SAMBA_DOMAIN\\$SAMBA_USERNAME (from .env)"
 echo ""
 
 # Mount the share
@@ -44,7 +46,7 @@ echo "🔗 Mounting SMB share..."
 MOUNT_UID=$(id -u)
 MOUNT_GID=$(id -g)
 sudo mount -t cifs "$SMB_SOURCE" "$MOUNT_POINT" \
-  -o "username=$SAMBA_USERNAME,password=$SAMBA_PASSWORD,vers=3.0,uid=$MOUNT_UID,gid=$MOUNT_GID,file_mode=0664,dir_mode=0775,noperm" 2>/dev/null && \
+  -o "username=$SAMBA_DOMAIN\\$SAMBA_USERNAME,password=$SAMBA_PASSWORD,vers=3.0,uid=$MOUNT_UID,gid=$MOUNT_GID,file_mode=0664,dir_mode=0775,noperm" 2>/dev/null && \
   echo "✓ Mount successful" || \
   echo "✗ Mount failed (check network connectivity and credentials)"
 

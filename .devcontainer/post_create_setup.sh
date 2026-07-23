@@ -8,13 +8,15 @@ echo "📦 Running devcontainer post-create setup..."
 ensure_test_lake_mount() {
   local lake_src="${TRE_TEST_LAKE_PATH_WINDOWS:-}"
   local lake_dst="${TRE_TEST_LAKE_PATH:-}"
+  local samba_domain="${SAMBA_DOMAIN:-}"
   local samba_user="${SAMBA_USERNAME:-}"
   local samba_pass="${SAMBA_PASSWORD:-}"
 
-  if [[ -z "${lake_src}" || -z "${lake_dst}" || -z "${samba_user}" || -z "${samba_pass}" ]]; then
+  if [[ -z "${lake_src}" || -z "${lake_dst}" || -z "${samba_domain}" || -z "${samba_user}" || -z "${samba_pass}" ]]; then
     echo "[INFO] TRE Samba mount skipped: missing required environment variables"
     echo "       - TRE_TEST_LAKE_PATH_WINDOWS: ${lake_src:-unset}"
     echo "       - TRE_TEST_LAKE_PATH: ${lake_dst:-unset}"
+    echo "       - SAMBA_DOMAIN: ${samba_domain:-unset}"
     echo "       - SAMBA_USERNAME: ${samba_user:-unset}"
     echo "       - SAMBA_PASSWORD: ${samba_pass:-unset}"
     return 0
@@ -59,11 +61,12 @@ EOF
 
   # Attempt mount
   if ${as_root} mount -t cifs "${lake_src}" "${lake_dst}" \
-      -o "username=${samba_user},password=${samba_pass},vers=3.0,uid=${uid},gid=${gid},file_mode=0664,dir_mode=0775,noperm" \
+      -o "username=${samba_domain}\\${samba_user},password=${samba_pass},vers=3.0,uid=${uid},gid=${gid},file_mode=0664,dir_mode=0775,noperm" \
       2>/dev/null; then
     echo "✓ TRE Samba mount successful"
     echo "  Source: ${lake_src}"
     echo "  Destination: ${lake_dst}"
+    echo "  Domain: ${samba_domain}"
   else
     echo "[WARN] TRE Samba mount failed (this is normal in some environments)"
     echo "       Ensure network connectivity to ${lake_src}"
