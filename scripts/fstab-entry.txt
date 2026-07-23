@@ -1,0 +1,18 @@
+# fstab entry for test lake mount
+# Add this line to /etc/fstab to enable auto-mounting at system start
+
+//DBN-Pure-Nas-01.ahri.org/testlake/pilot_tre /mnt/test_lake/pilot_tre cifs credentials=/root/.smbcredentials,uid=1000,gid=1000,file_mode=0755,dir_mode=0755 0 0
+
+# Installation:
+# 1. Create credentials file: /root/.smbcredentials with mode 600
+#    username=pgsqladmin
+#    password=<password from .env>
+#
+# 2. Add this line to /etc/fstab
+#
+# 3. Test mount: sudo mount -a
+#
+# 4. Verify: mount | grep test_lake
+#
+# Note: The credentials file must have restricted permissions (600)
+#       and only be readable by root
