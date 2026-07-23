@@ -29,8 +29,9 @@ RUN apt-get update \
 
 COPY .devcontainer/install_ahri_tre_runtime.sh /usr/local/bin/install_ahri_tre_runtime
 COPY .devcontainer/devcontainer_startup.sh /usr/local/bin/devcontainer_startup.sh
+COPY .devcontainer/post_create_setup.sh /usr/local/bin/post_create_setup.sh
 COPY .devcontainer/runtime/ /tmp/ahri-tre-runtime-cache/
-RUN chmod +x /usr/local/bin/devcontainer_startup.sh
+RUN chmod +x /usr/local/bin/devcontainer_startup.sh /usr/local/bin/post_create_setup.sh
 RUN --mount=type=secret,id=github_token,required=false \
     GITHUB_TOKEN="$(cat /run/secrets/github_token 2>/dev/null || true)" \
     AHRI_TRE_RELEASE_TAG="${AHRI_TRE_RELEASE_TAG}" \

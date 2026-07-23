@@ -13,6 +13,6 @@
       ]
     }
   },
-  "postCreateCommand": "R -q -f tools/ensure_dependencies.R",
-  "updateContentCommand": "R -q -f tools/ensure_dependencies.R"
+  "postCreateCommand": "bash /usr/local/bin/post_create_setup.sh",
+  "updateContentCommand": "bash /usr/local/bin/post_create_setup.sh"
 }
