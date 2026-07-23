@@ -26,26 +26,26 @@ if [ ! -f "/workspaces/ahriTRErRs/.env" ]; then
 fi
 
 # Extract credentials from .env
-LAKE_USER=$(grep "^LAKE_USER=" /workspaces/ahriTRErRs/.env | cut -d'=' -f2 | tr -d '"')
-LAKE_PASSWORD=$(grep "^LAKE_PASSWORD=" /workspaces/ahriTRErRs/.env | cut -d'=' -f2 | tr -d '"')
+SAMBA_USERNAME=$(grep "^SAMBA_USERNAME=" /workspaces/ahriTRErRs/.env | cut -d'=' -f2 | tr -d '"')
+SAMBA_PASSWORD=$(grep "^SAMBA_PASSWORD=" /workspaces/ahriTRErRs/.env | cut -d'=' -f2 | tr -d '"')
 
-if [ -z "$LAKE_USER" ] || [ -z "$LAKE_PASSWORD" ]; then
-  echo "✗ Error: LAKE_USER or LAKE_PASSWORD not found in .env"
+if [ -z "$SAMBA_USERNAME" ] || [ -z "$SAMBA_PASSWORD" ]; then
+  echo "✗ Error: SAMBA_USERNAME or SAMBA_PASSWORD not found in .env"
   exit 1
 fi
 
 echo "📋 Configuration:"
 echo "   Source:      $SMB_SOURCE"
 echo "   Mount Point: $MOUNT_POINT"
-echo "   Credentials: $LAKE_USER (from .env)"
+echo "   Credentials: $SAMBA_USERNAME (from .env)"
 echo ""
 
 # Create credentials file (secure: 600 permissions)
 if [ ! -f "$CREDS_FILE" ]; then
   echo "🔐 Creating secure credentials file..."
   sudo tee "$CREDS_FILE" > /dev/null <<EOF
-username=$LAKE_USER
-password=$LAKE_PASSWORD
+username=$SAMBA_USERNAME
+password=$SAMBA_PASSWORD
 EOF
   sudo chmod 600 "$CREDS_FILE"
   echo "✓ Credentials file created: $CREDS_FILE (600)"

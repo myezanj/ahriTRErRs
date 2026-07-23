@@ -4,7 +4,7 @@
 This directory contains scripts and configurations to auto-mount the test lake from SMB share:
 - **Source**: `//DBN-Pure-Nas-01.ahri.org/testlake/pilot_tre`
 - **Mount Point**: `/mnt/test_lake/pilot_tre`
-- **Credentials**: From `.env` (LAKE_USER, LAKE_PASSWORD)
+- **Credentials**: From `.env` (SAMBA_USERNAME, SAMBA_PASSWORD)
 
 ## Option 1: Using mount_test_lake.sh (Recommended for Dev)
 
@@ -36,8 +36,8 @@ This option automatically mounts the share on system startup.
 1. **Create credentials file** (run once):
    ```bash
    sudo sh -c 'cat > /root/.smbcredentials << EOF
-   username=pgsqladmin
-   password=<password from .env LAKE_PASSWORD field>
+   username=njabulo.myeza
+   password=<password from .env SAMBA_PASSWORD field>
    EOF
    chmod 600 /root/.smbcredentials'
    ```
@@ -133,8 +133,8 @@ sudo chmod 600 /root/.smbcredentials
 sudo touch /root/.smbcredentials
 sudo chmod 600 /root/.smbcredentials
 sudo sh -c 'cat >> /root/.smbcredentials << EOF
-username=pgsqladmin
-password=<password>
+username=njabulo.myeza
+password=<password from .env SAMBA_PASSWORD>
 EOF'
 ```
 
