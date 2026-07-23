@@ -1,135 +1,123 @@
-if ("package:ahriTRErRs" %in% search()) {
-  try(detach("package:ahriTRErRs", unload = TRUE, character.only = TRUE), silent = TRUE)
-}
-if ("ahriTRErRs" %in% loadedNamespaces()) {
-  try(unloadNamespace("ahriTRErRs"), silent = TRUE)
-}
+#!/usr/bin/env Rscript
+# Read datasets from the Rfam_Database_Collection study.
+# Uses ahriTRErRs package; expects a live session.
+
 suppressPackageStartupMessages(library(ahriTRErRs))
-if (file.exists(".env")) readRenviron(".env")
-options(ahriTRErRs.return_mode = "data.frame")
 
-enforce_row_read <- tolower(Sys.getenv("AHRI_TRE_ENFORCE_ROW_READ", "true")) %in% c("1", "true", "yes", "on")
-preflight_fail_fast <- tolower(Sys.getenv("AHRI_TRE_ROW_PREFLIGHT_FAIL_FAST", "true")) %in% c("1", "true", "yes", "on")
-preferred_study <- Sys.getenv("AHRI_TRE_TARGET_STUDY", "Rfam_Database_Collection")
+# ----- Helper functions (self-contained) -----
 
-`%||%` <- function(lhs, rhs) if (is.null(lhs)) rhs else lhs
-format_try_error <- function(err) if (inherits(err, "try-error")) conditionMessage(attr(err, "condition")) else as.character(err)
-lake_path_writable <- function(path) is.character(path) && length(path) == 1L && nzchar(path) && dir.exists(path) && file.access(path, 2L) == 0L
-read_rows <- function(client, study, dataset, limit = NULL) {
-  data_result <- try(dataset_data(client, study = study, dataset = dataset, limit = limit, format = "json"), silent = TRUE)
-  if (!inherits(data_result, "try-error") && is.data.frame(data_result$rows)) {
-    attr(data_result$rows, "read_mode") <- "dataset_data"
-    return(data_result$rows)
-  }
-
-  data_msg <- if (inherits(data_result, "try-error")) format_try_error(data_result) else "dataset_data returned no rows"
-  preview_result <- try(dataset_preview(client, study = study, dataset = dataset, limit = limit %||% 100L, format = "json"), silent = TRUE)
-  preview_msg <- if (inherits(preview_result, "try-error")) format_try_error(preview_result) else "dataset_preview diagnostic succeeded but dataset_data did not return rows"
-  stop(sprintf("dataset_data error: %s | dataset_preview diagnostic: %s", data_msg, preview_msg), call. = FALSE)
-}
-
-main <- function() {
-  runtime_roots <- normalizePath(path.expand(unique(c(
-    Sys.getenv("AHRI_TRE_RUNTIME_ROOT", "/opt/ahri-tre-runtime"),
+resolve_runtime_root <- function() {
+  candidates <- unique(c(
+    Sys.getenv("AHRI_TRE_RUNTIME_ROOT", ""),
     file.path(getwd(), ".runtime", "ahri-tre-runtime"),
-    "/workspaces/ahriTRErRs/.runtime/ahri-tre-runtime"
-  ))), mustWork = FALSE)
-  runtime_hits <- runtime_roots[file.exists(file.path(runtime_roots, "share", "ahri-tre", "manifest.json"))]
-  runtime_root <- if (length(runtime_hits)) runtime_hits[[1]] else runtime_roots[[1]]
-  manifest <- file.path(runtime_root, "share", "ahri-tre", "manifest.json")
-  Sys.setenv(AHRI_TRE_RUNTIME_ROOT = runtime_root)
-  cat("[INFO] AHRI_TRE_RUNTIME_ROOT=", runtime_root, "\n", sep = "")
-
-  if (!file.exists(manifest)) {
-    cat("[WARN] Runtime manifest not found at ", manifest, "\n", sep = "")
-    cat("[INFO] Install runtime and rerun this example.\n")
-    return(invisible(FALSE))
-  }
-
-  client <- AhriTreClient()
-  on.exit(close(client), add = TRUE)
-  studies_obj <- study_list(client, format = "json")$object
-  study_entries <- studies_obj$studies %||% list()
-  study_names <- unique(vapply(study_entries, function(entry) entry$study$name[[1]] %||% NA_character_, character(1), USE.NAMES = FALSE))
-  study_names <- study_names[!is.na(study_names) & nzchar(study_names)]
-  cat("[INFO] Studies found: ", length(study_names), "\n", sep = "")
-  if (!length(study_names)) {
-    cat("[WARN] No study available in active session.\n")
-    return(invisible(FALSE))
-  }
-
-  target <- if (preferred_study %in% study_names) preferred_study else study_names[[1]]
-  if (!(preferred_study %in% study_names)) {
-    cat("[WARN] Preferred study not found: ", preferred_study, " (falling back to ", target, ")\n", sep = "")
-  }
-  cat("[INFO] Selected study: ", target, "\n", sep = "")
-  cat("\n[INFO] Study details\n")
-  print(tryCatch(study_get(client, name = target, format = "json")$object, error = function(...) list(study = list(name = target))))
-
-  datafiles <- tryCatch(datafile_list(client, study = target, include_versions = TRUE, format = "json")$object$datafiles, error = function(...) list())
-  datafile_names <- unique(vapply(datafiles, function(entry) entry$catalog$asset$name[[1]] %||% NA_character_, character(1), USE.NAMES = FALSE))
-  datafile_names <- datafile_names[!is.na(datafile_names) & nzchar(datafile_names)]
-  cat("\n[INFO] Datafile entries found: ", length(datafile_names), "\n", sep = "")
-  for (i in seq_along(datafile_names)) cat("[INFO] Datafile ", i, ": ", datafile_names[[i]], "\n", sep = "")
-
-  datasets <- tryCatch(dataset_list(client, study = target, include_versions = TRUE, format = "json")$object$datasets, error = function(...) list())
-  dataset_names <- unique(vapply(datasets, function(entry) entry$catalog$asset$name[[1]] %||% NA_character_, character(1), USE.NAMES = FALSE))
-  dataset_names <- dataset_names[!is.na(dataset_names) & nzchar(dataset_names)]
-  cat("\n[INFO] Dataset entries found: ", length(dataset_names), "\n", sep = "")
-  for (i in seq_len(min(10L, length(dataset_names)))) cat("[INFO] Dataset ", i, ": ", dataset_names[[i]], "\n", sep = "")
-
-  session_state <- try(session_status(client, format = "json")$object, silent = TRUE)
-  if (!inherits(session_state, "try-error") && is.list(session_state$session$datastore)) {
-    lake_path <- session_state$session$datastore$lake_data$path[[1]] %||% ""
-    lake_db <- session_state$session$datastore$lake_db$path[[1]] %||% ""
-    cat("[INFO] Session lake path=", lake_path, ", writable=", as.character(lake_path_writable(lake_path)), "\n", sep = "")
-    cat("[INFO] Session lake db=", lake_db, "\n", sep = "")
-  }
-
-  if (length(dataset_names)) {
-    probe <- try(read_rows(client, target, dataset_names[[1]], limit = 1), silent = TRUE)
-    if (inherits(probe, "try-error")) {
-      cat("[WARN] Row preflight failed: ", format_try_error(probe), "\n", sep = "")
-      if (enforce_row_read && preflight_fail_fast) {
-        stop("Row preflight failed before metadata pass. Set AHRI_TRE_ROW_PREFLIGHT_FAIL_FAST=false to continue full diagnostics.", call. = FALSE)
-      }
-    } else {
-      cat("[INFO] Row preflight succeeded via ", attr(probe, "read_mode") %||% "dataset_data", " on dataset ", dataset_names[[1]], " (rows=", nrow(probe), ", cols=", ncol(probe), ")\n", sep = "")
-    }
-  }
-
-  cat("\n[INFO] Dataset metadata\n")
-  total_rows_read <- 0L
-  for (nm in dataset_names) {
-    cat("\n[INFO] Metadata for dataset: ", nm, "\n", sep = "")
-    print(dataset_metadata(client, study = target, dataset = nm, with_variables = TRUE, format = "json")$object)
-    rows <- try(read_rows(client, target, nm), silent = TRUE)
-    if (inherits(rows, "try-error")) {
-      cat("[WARN] Row read failed for dataset ", nm, ": ", format_try_error(rows), "\n", sep = "")
-      next
-    }
-    total_rows_read <- total_rows_read + nrow(rows)
-    cat("[INFO] Row read for dataset ", nm, ": rows=", nrow(rows), ", cols=", ncol(rows), "\n", sep = "")
-    if (nrow(rows) > 0L) print(utils::head(rows, 3))
-  }
-
-  cat("\n[INFO] Total rows read across datasets: ", total_rows_read, "\n", sep = "")
-  if (!total_rows_read && length(dataset_names)) {
-    session_state <- try(session_status(client, format = "json")$object, silent = TRUE)
-    cat("[WARN] No dataset rows were readable in this session.\n")
-    cat("[INFO] Checklist: verify live session, TRE_SERVER reachability, and DuckLake study schema/table materialization.\n")
-    if (!inherits(session_state, "try-error") && is.list(session_state$session)) {
-      s <- session_state$session
-      cat("[INFO] Session active=", as.character(s$active), ", availability=", as.character(s$availability), "\n", sep = "")
-      if (is.list(s$datastore)) {
-        cat("[INFO] Datastore server=", s$datastore$server[[1]] %||% "", ", db=", s$datastore$datastore[[1]] %||% "", "\n", sep = "")
-        cat("[INFO] Session lake path=", s$datastore$lake_data$path[[1]] %||% "", ", lake db=", s$datastore$lake_db$path[[1]] %||% "", "\n", sep = "")
-      }
-    }
-    if (enforce_row_read) stop("No dataset rows were readable. Set AHRI_TRE_ENFORCE_ROW_READ=false to keep diagnostics-only mode.", call. = FALSE)
-  }
-
-  invisible(TRUE)
+    "/opt/ahri-tre-runtime"
+  ))
+  candidates <- candidates[nzchar(candidates)]
+  roots <- normalizePath(path.expand(candidates), mustWork = FALSE)
+  manifests <- file.path(roots, "share", "ahri-tre", "manifest.json")
+  hits <- roots[file.exists(manifests)]
+  if (length(hits) > 0L) hits[[1]] else roots[[1]]
 }
 
-main()
+setup_runtime <- function() {
+  root <- resolve_runtime_root()
+  if (!file.exists(file.path(root, "share", "ahri-tre", "manifest.json"))) {
+    stop("AHRI TRE runtime not found. Set AHRI_TRE_RUNTIME_ROOT or install runtime.")
+  }
+  Sys.setenv(AHRI_TRE_RUNTIME_ROOT = root)
+  cat("[INFO] Using runtime root:", root, "\n")
+  invisible(root)
+}
+
+create_client <- function(max_attempts = 2L) {
+  for (attempt in seq_len(max_attempts)) {
+    client <- tryCatch(AhriTreClient(), error = function(e) e)
+    if (!inherits(client, "error")) {
+      return(client)
+    }
+    if (attempt < max_attempts) {
+      cat("[WARN] Client creation failed, retrying...\n")
+      Sys.sleep(1)
+    } else {
+      stop("Failed to create client after ", max_attempts, " attempts: ", conditionMessage(client))
+    }
+  }
+}
+
+has_live_session <- function(client) {
+  status <- try(session_status(client, format = "json")$object, silent = TRUE)
+  if (inherits(status, "try-error") || is.null(status$session)) return(FALSE)
+  isTRUE(status$session$active) && identical(status$session$availability %||% "", "live")
+}
+
+ensure_session <- function(client, fail = TRUE) {
+  if (has_live_session(client)) return(TRUE)
+  cat("[WARN] No live session is active.\n")
+  cat("Run 'Rscript inst/examples/open_oauth_session.r' to open one.\n")
+  if (isTRUE(fail)) stop("Live session required.")
+  FALSE
+}
+
+read_dataset_rows <- function(client, study, dataset, limit = NULL) {
+  result <- dataset_data(client, study = study, dataset = dataset, limit = limit, format = "json")
+  result$data_frame  # returns data frame if available
+}
+
+# ----- Main script -----
+
+setup_runtime()
+client <- create_client()
+on.exit(close(client), add = TRUE)
+
+if (!ensure_session(client, fail = TRUE)) quit(save = "no", status = 1)
+
+# List domains
+domains <- domain_list(client, format = "json")
+cat("\n[INFO] Domains found:\n")
+print(domains$data_frame)
+
+# Get Basic_Science domain
+domain_info <- domain_get(client, name = "Basic_Science", format = "json")
+if (is.null(domain_info$object$domain)) {
+  stop("Domain 'Basic_Science' not found.")
+}
+cat("\n[INFO] Domain details:\n")
+print(domain_info$object$domain)
+
+# List studies
+studies <- study_list(client, format = "json")
+cat("\n[INFO] Studies found:\n")
+print(studies$data_frame)
+
+study_name <- "Rfam_Database_Collection"
+study <- study_get(client, name = study_name, format = "json")
+if (is.null(study$object$study)) {
+  stop("Study not found: ", study_name)
+}
+cat("\n[INFO] Using study:", study_name, "\n")
+
+# List datasets in the study
+datasets <- dataset_list(client, study = study_name, include_versions = TRUE, format = "json")
+cat("\n[INFO] Datasets in study:\n")
+print(datasets$data_frame)
+
+# Get dataset names
+ds_names <- unique(datasets$data_frame$name)
+if (length(ds_names) == 0) {
+  cat("[WARN] No datasets found.\n")
+  quit(save = "no", status = 0)
+}
+
+# Read first few rows from each dataset
+for (nm in ds_names) {
+  cat("\n[INFO] Reading dataset:", nm, "\n")
+  rows <- try(read_dataset_rows(client, study_name, nm, limit = 10), silent = TRUE)
+  if (inherits(rows, "try-error")) {
+    cat("[WARN] Failed to read:", conditionMessage(rows), "\n")
+    next
+  }
+  cat("[INFO] Rows:", nrow(rows), " Cols:", ncol(rows), "\n")
+  if (nrow(rows) > 0) print(utils::head(rows, 3))
+}
+
+cat("\n[INFO] Done.\n")

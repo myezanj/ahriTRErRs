@@ -1,130 +1,138 @@
-﻿TRE_PROTOCOL_VERSION <- "1.0.0"
+# Protocol version
+TRE_PROTOCOL_VERSION <- "1.0.0"
+
+# Command kind mapping
 TRE_COMMAND_KIND_MAP <- list(
-  "asset_delete" = "asset.delete",
-  "asset_duo_clear" = "asset.duo.clear",
-  "asset_duo_list" = "asset.duo.list",
-  "asset_duo_replace" = "asset.duo.replace",
-  "asset_get" = "asset.get",
-  "asset_list" = "asset.list",
-  "asset_versions" = "asset.versions",
-  "auth_login" = "auth.login",
-  "auth_logout" = "auth.logout",
-  "auth_status" = "auth.status",
-  "completion" = "completion",
-  "daemon_doctor" = "daemon.doctor",
-  "daemon_start" = "daemon.start",
-  "daemon_status" = "daemon.status",
-  "daemon_stop" = "daemon.stop",
-  "daemon_version" = "daemon.version",
-  "datafile_delete" = "datafile.delete",
-  "datafile_export" = "datafile.export",
-  "datafile_list" = "datafile.list",
-  "datafile_metadata" = "datafile.metadata",
-  "datafile_search" = "datafile.search",
-  "dataset_data" = "dataset.data",
-  "dataset_delete" = "dataset.delete",
-  "dataset_export" = "dataset.export",
-  "dataset_list" = "dataset.list",
-  "dataset_metadata" = "dataset.metadata",
-  "dataset_preview" = "dataset.preview",
-  "dataset_search" = "dataset.search",
-  "dataset_withdraw" = "dataset.withdraw",
-  "datastore_adopt" = "datastore.adopt",
-  "datastore_create" = "datastore.create",
-  "datastore_info" = "datastore.info",
-  "datastore_list" = "datastore.list",
-  "datastore_ping" = "datastore.ping",
-  "datastore_rotate" = "datastore.rotate-lake-credential",
-  "datastore_schema" = "datastore.schema-status",
-  "doctor" = "doctor",
-  "domain_add" = "domain.add",
-  "domain_delete" = "domain.delete",
-  "domain_get" = "domain.get",
-  "domain_list" = "domain.list",
-  "entity_add" = "entity.add",
-  "entity_delete" = "entity.delete",
-  "entity_get" = "entity.get",
-  "entity_instance_add" = "entity.instance.add",
-  "entity_instance_asset_link_add" = "entity.instance.asset-link.add",
-  "entity_instance_asset_link_list" = "entity.instance.asset-link.list",
-  "entity_instance_dataset_link_add" = "entity.instance.dataset-link.add",
-  "entity_instance_dataset_link_get" = "entity.instance.dataset-link.get",
-  "entity_instance_dataset_link_list" = "entity.instance.dataset-link.list",
-  "entity_instance_datasets" = "entity.instance.datasets",
-  "entity_instance_ensure" = "entity.instance.ensure-from-dataset",
-  "entity_instance_get" = "entity.instance.get",
-  "entity_instance_list" = "entity.instance.list",
-  "entity_instance_map_add" = "entity.instance.map.add",
-  "entity_instance_map_get" = "entity.instance.map.get",
-  "entity_instance_map_list" = "entity.instance.map.list",
-  "entity_list" = "entity.list",
-  "entity_relation_add" = "entity-relation.add",
-  "entity_relation_delete" = "entity-relation.delete",
-  "entity_relation_get" = "entity-relation.get",
-  "entity_relation_instance_add" = "entity-relation.instance.add",
-  "entity_relation_instance_asset_link_add" = "entity-relation.instance.asset-link.add",
-  "entity_relation_instance_asset_link_list" = "entity-relation.instance.asset-link.list",
-  "entity_relation_instance_dataset_link_add" = "entity-relation.instance.dataset-link.add",
-  "entity_relation_instance_dataset_link_get" = "entity-relation.instance.dataset-link.get",
-  "entity_relation_instance_dataset_link_list" = "entity-relation.instance.dataset-link.list",
-  "entity_relation_instance_ensure" = "entity-relation.instance.ensure-from-dataset",
-  "entity_relation_instance_get" = "entity-relation.instance.get",
-  "entity_relation_instance_list" = "entity-relation.instance.list",
-  "entity_relation_instance_map_add" = "entity-relation.instance.map.add",
-  "entity_relation_instance_map_get" = "entity-relation.instance.map.get",
-  "entity_relation_instance_map_list" = "entity-relation.instance.map.list",
-  "entity_relation_list" = "entity-relation.list",
-  "entity_relation_search" = "entity-relation.search",
-  "entity_search" = "entity.search",
-  "ingest_datafile" = "ingest.datafile",
-  "ingest_dataset_datafile" = "ingest.dataset.from-datafile",
-  "ingest_dataset_sql" = "ingest.dataset.from-sql",
-  "ingest_dataset_table" = "ingest.dataset.table",
-  "ingest_redcap_project" = "ingest.redcap.project",
-  "schema_get" = "schema.get",
-  "schema_list" = "schema.list",
-  "session_close" = "session.close",
-  "session_list" = "session.list",
-  "session_open" = "session.open-oauth",
-  "session_reopen" = "session.reopen",
-  "session_status" = "session.status",
-  "session_use" = "session.use",
-  "study_access_grant" = "study.access.grant",
-  "study_access_list" = "study.access.list",
-  "study_access_revoke" = "study.access.revoke",
-  "study_add" = "study.add",
-  "study_add_domain" = "study.add-domain",
-  "study_clear_current" = "study.clear-current",
-  "study_context_list" = "study.context.list",
-  "study_current" = "study.current",
-  "study_custodians_add" = "study.custodians.add-delegate",
-  "study_custodians_list" = "study.custodians.list",
-  "study_custodians_remove" = "study.custodians.remove-delegate",
-  "study_custodians_transfer" = "study.custodians.transfer-primary",
-  "study_delete" = "study.delete",
-  "study_duo_list" = "study.duo.list",
-  "study_duo_replace" = "study.duo.replace",
-  "study_get" = "study.get",
-  "study_list" = "study.list",
-  "study_search" = "study.search",
-  "study_use" = "study.use",
-  "tag_get" = "tag.get",
-  "tag_list" = "tag.list",
-  "tag_set" = "tag.set",
-  "transformation_list" = "transformation.list",
-  "variable_add" = "variable.add",
-  "variable_delete" = "variable.delete",
-  "variable_get" = "variable.get",
-  "variable_list" = "variable.list",
-  "variable_search" = "variable.search",
-  "variable_update" = "variable.update",
-  "version" = "version",
-  "vocabulary_add" = "vocabulary.add",
-  "vocabulary_delete" = "vocabulary.delete",
-  "vocabulary_get" = "vocabulary.get",
-  "vocabulary_list" = "vocabulary.list"
+  asset_delete = "asset.delete",
+  asset_duo_clear = "asset.duo.clear",
+  asset_duo_list = "asset.duo.list",
+  asset_duo_replace = "asset.duo.replace",
+  asset_get = "asset.get",
+  asset_list = "asset.list",
+  asset_versions = "asset.versions",
+  auth_login = "auth.login",
+  auth_logout = "auth.logout",
+  auth_status = "auth.status",
+  completion = "completion",
+  daemon_doctor = "daemon.doctor",
+  daemon_start = "daemon.start",
+  daemon_status = "daemon.status",
+  daemon_stop = "daemon.stop",
+  daemon_version = "daemon.version",
+  datafile_delete = "datafile.delete",
+  datafile_export = "datafile.export",
+  datafile_list = "datafile.list",
+  datafile_metadata = "datafile.metadata",
+  datafile_search = "datafile.search",
+  dataset_data = "dataset.data",
+  dataset_delete = "dataset.delete",
+  dataset_export = "dataset.export",
+  dataset_list = "dataset.list",
+  dataset_metadata = "dataset.metadata",
+  dataset_preview = "dataset.preview",
+  dataset_search = "dataset.search",
+  dataset_withdraw = "dataset.withdraw",
+  datastore_adopt = "datastore.adopt",
+  datastore_create = "datastore.create",
+  datastore_info = "datastore.info",
+  datastore_list = "datastore.list",
+  datastore_ping = "datastore.ping",
+  datastore_rotate = "datastore.rotate-lake-credential",
+  datastore_schema = "datastore.schema-status",
+  doctor = "doctor",
+  domain_add = "domain.add",
+  domain_delete = "domain.delete",
+  domain_get = "domain.get",
+  domain_list = "domain.list",
+  entity_add = "entity.add",
+  entity_delete = "entity.delete",
+  entity_get = "entity.get",
+  entity_instance_add = "entity.instance.add",
+  entity_instance_asset_link_add = "entity.instance.asset-link.add",
+  entity_instance_asset_link_list = "entity.instance.asset-link.list",
+  entity_instance_dataset_link_add = "entity.instance.dataset-link.add",
+  entity_instance_dataset_link_get = "entity.instance.dataset-link.get",
+  entity_instance_dataset_link_list = "entity.instance.dataset-link.list",
+  entity_instance_datasets = "entity.instance.datasets",
+  entity_instance_ensure = "entity.instance.ensure-from-dataset",
+  entity_instance_get = "entity.instance.get",
+  entity_instance_list = "entity.instance.list",
+  entity_instance_map_add = "entity.instance.map.add",
+  entity_instance_map_get = "entity.instance.map.get",
+  entity_instance_map_list = "entity.instance.map.list",
+  entity_list = "entity.list",
+  entity_relation_add = "entity-relation.add",
+  entity_relation_delete = "entity-relation.delete",
+  entity_relation_get = "entity-relation.get",
+  entity_relation_instance_add = "entity-relation.instance.add",
+  entity_relation_instance_asset_link_add = "entity-relation.instance.asset-link.add",
+  entity_relation_instance_asset_link_list = "entity-relation.instance.asset-link.list",
+  entity_relation_instance_dataset_link_add = "entity-relation.instance.dataset-link.add",
+  entity_relation_instance_dataset_link_get = "entity-relation.instance.dataset-link.get",
+  entity_relation_instance_dataset_link_list = "entity-relation.instance.dataset-link.list",
+  entity_relation_instance_ensure = "entity-relation.instance.ensure-from-dataset",
+  entity_relation_instance_get = "entity-relation.instance.get",
+  entity_relation_instance_list = "entity-relation.instance.list",
+  entity_relation_instance_map_add = "entity-relation.instance.map.add",
+  entity_relation_instance_map_get = "entity-relation.instance.map.get",
+  entity_relation_instance_map_list = "entity-relation.instance.map.list",
+  entity_relation_list = "entity-relation.list",
+  entity_relation_search = "entity-relation.search",
+  entity_search = "entity.search",
+  ingest_datafile = "ingest.datafile",
+  ingest_dataset_datafile = "ingest.dataset.from-datafile",
+  ingest_dataset_sql = "ingest.dataset.from-sql",
+  ingest_dataset_table = "ingest.dataset.table",
+  ingest_redcap_project = "ingest.redcap.project",
+  schema_get = "schema.get",
+  schema_list = "schema.list",
+  session_close = "session.close",
+  session_list = "session.list",
+  session_open = "session.open-oauth",
+  session_reopen = "session.reopen",
+  session_status = "session.status",
+  session_use = "session.use",
+  study_access_grant = "study.access.grant",
+  study_access_list = "study.access.list",
+  study_access_revoke = "study.access.revoke",
+  study_add = "study.add",
+  study_add_domain = "study.add-domain",
+  study_clear_current = "study.clear-current",
+  study_context_list = "study.context.list",
+  study_current = "study.current",
+  study_custodians_add = "study.custodians.add-delegate",
+  study_custodians_list = "study.custodians.list",
+  study_custodians_remove = "study.custodians.remove-delegate",
+  study_custodians_transfer = "study.custodians.transfer-primary",
+  study_delete = "study.delete",
+  study_duo_list = "study.duo.list",
+  study_duo_replace = "study.duo.replace",
+  study_get = "study.get",
+  study_list = "study.list",
+  study_search = "study.search",
+  study_use = "study.use",
+  tag_get = "tag.get",
+  tag_list = "tag.list",
+  tag_set = "tag.set",
+  transformation_list = "transformation.list",
+  variable_add = "variable.add",
+  variable_delete = "variable.delete",
+  variable_get = "variable.get",
+  variable_list = "variable.list",
+  variable_search = "variable.search",
+  variable_update = "variable.update",
+  version = "version",
+  vocabulary_add = "vocabulary.add",
+  vocabulary_delete = "vocabulary.delete",
+  vocabulary_get = "vocabulary.get",
+  vocabulary_list = "vocabulary.list"
 )
 
+#' Compact NULL fields from a list
+#'
+#' @param x List to compact
+#' @return List with NULL elements removed
+#' @noRd
 compact_null_fields <- function(x) {
   if (length(x) == 0L) {
     return(list())
@@ -132,6 +140,13 @@ compact_null_fields <- function(x) {
   x[!vapply(x, is.null, logical(1))]
 }
 
+#' Merge request body fields
+#'
+#' @param auto_fields Automatically mapped fields
+#' @param dot_fields Fields from ...
+#' @param explicit_body Explicit body parameter
+#' @return Merged list
+#' @noRd
 merge_request_body <- function(auto_fields = list(), dot_fields = list(), explicit_body = NULL) {
   if (!is.null(explicit_body)) {
     return(explicit_body)
@@ -139,6 +154,7 @@ merge_request_body <- function(auto_fields = list(), dot_fields = list(), explic
 
   body <- compact_null_fields(auto_fields)
   dots <- compact_null_fields(dot_fields)
+
   if (length(dots) == 0L) {
     return(body)
   }
@@ -158,6 +174,13 @@ merge_request_body <- function(auto_fields = list(), dot_fields = list(), explic
   body
 }
 
+#' Create a new protocol request
+#'
+#' @param kind Request kind
+#' @param body Request body
+#' @param protocol_version Protocol version
+#' @return Protocol request list
+#' @noRd
 new_tre_protocol_request <- function(kind, body = list(), protocol_version = TRE_PROTOCOL_VERSION) {
   list(
     protocol_version = protocol_version,
@@ -166,6 +189,11 @@ new_tre_protocol_request <- function(kind, body = list(), protocol_version = TRE
   )
 }
 
+#' Check if protocol result is OK
+#'
+#' @param envelope Response envelope
+#' @return Logical
+#' @noRd
 tre_result_ok <- function(envelope) {
   ok <- envelope$ok
   if (is.logical(ok) && length(ok) == 1L) {
@@ -174,6 +202,11 @@ tre_result_ok <- function(envelope) {
   is.null(envelope$error) && is.null(envelope$failure)
 }
 
+#' Extract data from envelope
+#'
+#' @param envelope Response envelope
+#' @return Extracted data
+#' @noRd
 tre_extract_data <- function(envelope) {
   for (key in c("data", "result", "output", "body")) {
     if (!is.null(envelope[[key]])) {
@@ -183,6 +216,11 @@ tre_extract_data <- function(envelope) {
   envelope
 }
 
+#' Coerce value to R object
+#'
+#' @param value Input value
+#' @return Coerced object
+#' @noRd
 tre_coerce_r_object <- function(value) {
   if (is.null(value) || is.data.frame(value)) {
     return(value)
@@ -198,6 +236,11 @@ tre_coerce_r_object <- function(value) {
   value
 }
 
+#' Coerce value to data frame
+#'
+#' @param value Input value
+#' @return Data frame or NULL
+#' @noRd
 tre_coerce_data_frame <- function(value) {
   value <- tre_coerce_r_object(value)
   if (is.null(value)) {
@@ -208,7 +251,8 @@ tre_coerce_data_frame <- function(value) {
   }
 
   if (is.list(value)) {
-    for (candidate in c("items", "rows", "data", "result", "output", "body", "studies", "datasets", "datafiles", "entities", "domains", "variables")) {
+    for (candidate in c("items", "rows", "data", "result", "output", "body",
+                        "studies", "datasets", "datafiles", "entities", "domains", "variables")) {
       if (!is.null(value[[candidate]])) {
         candidate_df <- tre_coerce_data_frame(value[[candidate]])
         if (!is.null(candidate_df)) {
@@ -233,6 +277,11 @@ tre_coerce_data_frame <- function(value) {
   NULL
 }
 
+#' Check if envelope is an invalid request
+#'
+#' @param envelope Response envelope
+#' @return Logical
+#' @noRd
 tre_is_invalid_request_envelope <- function(envelope) {
   if (is.null(envelope) || !is.list(envelope)) {
     return(FALSE)
@@ -243,6 +292,11 @@ tre_is_invalid_request_envelope <- function(envelope) {
     grepl("protocol request kind is not supported", message, fixed = TRUE)
 }
 
+#' Check if envelope indicates no live session
+#'
+#' @param envelope Response envelope
+#' @return Logical
+#' @noRd
 tre_is_no_live_session_envelope <- function(envelope) {
   if (is.null(envelope) || !is.list(envelope)) {
     return(FALSE)
@@ -251,16 +305,31 @@ tre_is_no_live_session_envelope <- function(envelope) {
   grepl("no live session is selected", message, fixed = TRUE)
 }
 
+#' Check if message indicates no live session
+#'
+#' @param message Error message
+#' @return Logical
+#' @noRd
 tre_is_no_live_session_message <- function(message) {
   is.character(message) &&
     length(message) >= 1L &&
     grepl("no live session is selected", message[[1]], fixed = TRUE)
 }
 
+#' Check if error indicates no live session
+#'
+#' @param err Error object
+#' @return Logical
+#' @noRd
 tre_is_no_live_session_error <- function(err) {
   inherits(err, "error") && tre_is_no_live_session_message(conditionMessage(err))
 }
 
+#' Check if envelope indicates daemon connection issue
+#'
+#' @param envelope Response envelope
+#' @return Logical
+#' @noRd
 tre_is_daemon_connection_envelope <- function(envelope) {
   if (is.null(envelope) || !is.list(envelope)) {
     return(FALSE)
@@ -277,6 +346,11 @@ tre_is_daemon_connection_envelope <- function(envelope) {
   ))
 }
 
+#' Check if message indicates daemon connection issue
+#'
+#' @param message Error message
+#' @return Logical
+#' @noRd
 tre_is_daemon_connection_message <- function(message) {
   if (!is.character(message) || length(message) < 1L) {
     return(FALSE)
@@ -292,15 +366,29 @@ tre_is_daemon_connection_message <- function(message) {
   ))
 }
 
+#' Check if error indicates daemon connection issue
+#'
+#' @param err Error object
+#' @return Logical
+#' @noRd
 tre_is_daemon_connection_error <- function(err) {
   inherits(err, "error") && tre_is_daemon_connection_message(conditionMessage(err))
 }
 
+#' Check if auto-session is enabled
+#'
+#' @return Logical
+#' @noRd
 tre_auto_session_enabled <- function() {
   flag <- tolower(Sys.getenv("AHRI_TRE_AUTO_SESSION_USE", unset = "true"))
   !flag %in% c("0", "false", "no", "off")
 }
 
+#' Check if kind is a read-like operation
+#'
+#' @param kind Command kind
+#' @return Logical
+#' @noRd
 tre_is_read_like_kind <- function(kind) {
   if (!is.character(kind) || length(kind) < 1L || !nzchar(kind[[1]])) {
     return(FALSE)
@@ -311,6 +399,11 @@ tre_is_read_like_kind <- function(kind) {
   )
 }
 
+#' Check if soft no-live-session is enabled for kind
+#'
+#' @param kind Command kind
+#' @return Logical
+#' @noRd
 tre_soft_no_live_session_enabled <- function(kind) {
   flag <- tolower(trimws(as.character(
     getOption(
@@ -324,6 +417,10 @@ tre_soft_no_live_session_enabled <- function(kind) {
   tre_is_read_like_kind(kind)
 }
 
+#' Get CLI binary path
+#'
+#' @return Character path or NULL
+#' @noRd
 tre_cli_binary <- function() {
   runtime_root <- Sys.getenv("AHRI_TRE_RUNTIME_ROOT", unset = "")
   if (!nzchar(runtime_root)) {
@@ -336,6 +433,11 @@ tre_cli_binary <- function() {
   path
 }
 
+#' Parse first JSON object from output
+#'
+#' @param lines Character vector of output lines
+#' @return Parsed JSON object or NULL
+#' @noRd
 tre_parse_first_json_object <- function(lines) {
   if (length(lines) == 0L) {
     return(NULL)
@@ -353,6 +455,12 @@ tre_parse_first_json_object <- function(lines) {
   parsed
 }
 
+#' Convert body to CLI arguments
+#'
+#' @param kind Command kind
+#' @param body Request body
+#' @return Character vector of arguments
+#' @noRd
 tre_cli_args_from_body <- function(kind, body) {
   tokens <- strsplit(kind, "\\.", fixed = FALSE)[[1]]
   args <- as.list(tokens)
@@ -389,6 +497,12 @@ tre_cli_args_from_body <- function(kind, body) {
   unlist(args, use.names = FALSE)
 }
 
+#' Execute via CLI (fallback)
+#'
+#' @param kind Command kind
+#' @param body Request body
+#' @return Result list or NULL
+#' @noRd
 tre_execute_via_cli <- function(kind, body) {
   cli_bin <- tre_cli_binary()
   if (is.null(cli_bin)) {
@@ -425,6 +539,10 @@ tre_execute_via_cli <- function(kind, body) {
   list(envelope = envelope, payloads = list())
 }
 
+#' Try to activate a live session via CLI
+#'
+#' @return Logical indicating success
+#' @noRd
 tre_cli_try_activate_live_session <- function() {
   cli_bin <- tre_cli_binary()
   if (is.null(cli_bin)) {
@@ -509,6 +627,10 @@ tre_cli_try_activate_live_session <- function() {
   isTRUE(use_json$ok)
 }
 
+#' Try to restart daemon via CLI
+#'
+#' @return Logical indicating success
+#' @noRd
 tre_cli_try_restart_daemon <- function() {
   cli_bin <- tre_cli_binary()
   if (is.null(cli_bin)) {
@@ -534,6 +656,10 @@ tre_cli_try_restart_daemon <- function() {
   isTRUE(start_json$ok)
 }
 
+#' Get wrapper return mode
+#'
+#' @return Character: "data.frame", "object", or "json"
+#' @noRd
 tre_wrapper_return_mode <- function() {
   mode <- getOption("ahriTRErRs.return_mode", Sys.getenv("AHRI_TRE_R_RETURN_MODE", unset = "data.frame"))
   mode <- tolower(trimws(as.character(mode[[1]] %||% "data.frame")))
@@ -549,6 +675,12 @@ tre_wrapper_return_mode <- function() {
   "data.frame"
 }
 
+#' Coerce to JSON string
+#'
+#' @param raw_data Raw data
+#' @param object Coerced object
+#' @return JSON string
+#' @noRd
 tre_coerce_json <- function(raw_data, object) {
   if (is.character(raw_data) && length(raw_data) == 1L && nzchar(raw_data)) {
     return(raw_data)
@@ -556,8 +688,17 @@ tre_coerce_json <- function(raw_data, object) {
   jsonlite::toJSON(object, auto_unbox = TRUE, null = "null")
 }
 
+#' Normalize output result
+#'
+#' @param result Protocol result
+#' @param output_label Output label
+#' @param status_and_purpose Status and purpose
+#' @param function_name Function name
+#' @return Normalized wrapper result
+#' @noRd
 tre_normalize_output <- function(result, output_label = NULL, status_and_purpose = NULL, function_name = NULL) {
   envelope <- result$envelope %||% list()
+
   if (!tre_result_ok(envelope)) {
     failure <- protocol_failure_summary(envelope)
     abort_ahri_tre(
@@ -570,6 +711,7 @@ tre_normalize_output <- function(result, output_label = NULL, status_and_purpose
   object <- tre_coerce_r_object(raw_data)
   data_frame <- tre_coerce_data_frame(object)
   mode <- tre_wrapper_return_mode()
+
   data <- switch(
     mode,
     "json" = tre_coerce_json(raw_data, object),
@@ -592,6 +734,19 @@ tre_normalize_output <- function(result, output_label = NULL, status_and_purpose
   )
 }
 
+#' Execute a TRE command
+#'
+#' @param client AhriTreClient object
+#' @param kind Command kind
+#' @param ... Additional arguments
+#' @param .auto_fields Auto-mapped fields
+#' @param .body Explicit body
+#' @param .protocol_version Protocol version
+#' @param .output_label Output label
+#' @param .status_and_purpose Status and purpose
+#' @param .function_name Function name
+#' @return Normalized wrapper result
+#' @noRd
 tre_command_call <- function(
   client,
   kind,
@@ -725,5 +880,3 @@ tre_command_call <- function(
     function_name = .function_name
   )
 }
-
-

@@ -1,32 +1,61 @@
-suppressPackageStartupMessages(library(ahriTRErRs))
-if (file.exists(".env")) readRenviron(".env")
-options(ahriTRErRs.return_mode = "json")
+#!/usr/bin/env Rscript
+#
+# Cleanup script for temporary row-probe study and dataset.
+# Usage: set AHRI_TRE_STUDY, AHRI_TRE_DATASET, and optionally AHRI_TRE_DELETE_PROBE=true.
+#
+# Environment variables:
+#   AHRI_TRE_CLEANUP_STUDY      - Name of the study to delete (default: Copilot_Row_Probe_20260720)
+#   AHRI_TRE_CLEANUP_DATASET    - Name of the dataset to delete (default: runtime_row_probe)
+#   AHRI_TRE_DELETE_PROBE       - Set to "true" to actually delete (dry-run otherwise)
+#   AHRI_TRE_RUNTIME_ROOT       - Path to runtime artifact (discovered automatically)
 
+suppressPackageStartupMessages(library(ahriTRErRs))
+
+# Helper to find runtime root (copied in each script for self-containment)
+resolve_runtime_root <- function() {
+  candidates <- unique(c(
+    Sys.getenv("AHRI_TRE_RUNTIME_ROOT", "/opt/ahri-tre-runtime"),
+    file.path(getwd(), ".runtime", "ahri-tre-runtime"),
+    "/workspaces/ahriTRErRs/.runtime/ahri-tre-runtime"
+  ))
+  roots <- normalizePath(path.expand(candidates), mustWork = FALSE)
+  manifests <- file.path(roots, "share", "ahri-tre", "manifest.json")
+  hits <- roots[file.exists(manifests)]
+  if (length(hits) > 0L) hits[[1]] else roots[[1]]
+}
+
+# Load .env if present
+if (file.exists(".env")) readRenviron(".env")
+
+# Configuration
 study_name <- Sys.getenv("AHRI_TRE_CLEANUP_STUDY", unset = "Copilot_Row_Probe_20260720")
 dataset_name <- Sys.getenv("AHRI_TRE_CLEANUP_DATASET", unset = "runtime_row_probe")
 delete_enabled <- tolower(Sys.getenv("AHRI_TRE_DELETE_PROBE", unset = "false")) %in% c("1", "true", "yes", "on")
 
-cat("[INFO] Cleanup target study=", study_name, ", dataset=", dataset_name, "\n", sep = "")
-cat("[INFO] Destructive delete enabled=", delete_enabled, "\n", sep = "")
+cat(sprintf("[INFO] Cleanup target study=%s, dataset=%s\n", study_name, dataset_name))
+cat(sprintf("[INFO] Destructive delete enabled=%s\n", delete_enabled))
 
-runtime_candidates <- unique(c(
-  Sys.getenv("AHRI_TRE_RUNTIME_ROOT", "/opt/ahri-tre-runtime"),
-  file.path(getwd(), ".runtime", "ahri-tre-runtime"),
-  "/workspaces/ahriTRErRs/.runtime/ahri-tre-runtime"
-))
-runtime_roots <- normalizePath(path.expand(runtime_candidates), mustWork = FALSE)
-runtime_manifests <- file.path(runtime_roots, "share", "ahri-tre", "manifest.json")
-runtime_hits <- runtime_roots[file.exists(runtime_manifests)]
-runtime_root <- if (length(runtime_hits) > 0L) runtime_hits[[1]] else runtime_roots[[1]]
+# Locate runtime
+runtime_root <- resolve_runtime_root()
+Sys.setenv(AHRI_TRE_RUNTIME_ROOT = runtime_root)
+manifest <- file.path(runtime_root, "share", "ahri-tre", "manifest.json")
+if (!file.exists(manifest)) {
+  cat("[ERROR] Runtime manifest not found. Install runtime first.\n")
+  quit(save = "no", status = 1)
+}
+
+# Determine CLI binary
 ahri_tre_bin <- file.path(runtime_root, "bin", "ahri-tre")
 if (!file.exists(ahri_tre_bin)) {
   stop("Could not locate ahri-tre binary at ", ahri_tre_bin, call. = FALSE)
 }
 
+# Helper to run CLI commands
 run_cli <- function(args) {
   env <- c(
     paste0("AHRI_TRE_RUNTIME_ROOT=", runtime_root),
-    paste0("LD_LIBRARY_PATH=", file.path(runtime_root, "lib"), if (nzchar(Sys.getenv("LD_LIBRARY_PATH", unset = ""))) paste0(":", Sys.getenv("LD_LIBRARY_PATH")) else "")
+    paste0("LD_LIBRARY_PATH=", file.path(runtime_root, "lib"),
+           if (nzchar(Sys.getenv("LD_LIBRARY_PATH", unset = ""))) paste0(":", Sys.getenv("LD_LIBRARY_PATH")) else "")
   )
   out <- system2(ahri_tre_bin, args = args, stdout = TRUE, stderr = TRUE, env = env)
   status <- attr(out, "status")
@@ -38,9 +67,11 @@ output_has <- function(res, pattern) {
   any(grepl(pattern, paste(res$output, collapse = "\n"), fixed = TRUE))
 }
 
+# Create client
 client <- AhriTreClient()
 on.exit(close(client), add = TRUE)
 
+# List studies
 studies <- try(study_list(client, format = "json")$object, silent = TRUE)
 study_names <- character()
 if (!inherits(studies, "try-error") && is.list(studies) && is.list(studies$studies)) {
@@ -55,6 +86,7 @@ if (!(study_name %in% study_names)) {
   quit(save = "no", status = 0)
 }
 
+# List datasets in that study
 datasets <- try(dataset_list(client, study = study_name, include_versions = TRUE, format = "json")$object, silent = TRUE)
 dataset_names <- character()
 if (!inherits(datasets, "try-error") && is.list(datasets) && is.list(datasets$datasets)) {
@@ -64,9 +96,10 @@ if (!inherits(datasets, "try-error") && is.list(datasets) && is.list(datasets$da
   dataset_names <- unique(dataset_names[!is.na(dataset_names) & nzchar(dataset_names)])
 }
 
+# Delete dataset if present
 if (dataset_name %in% dataset_names) {
   if (isTRUE(delete_enabled)) {
-    cat("[INFO] Deleting dataset: ", dataset_name, "\n", sep = "")
+    cat(sprintf("[INFO] Deleting dataset: %s\n", dataset_name))
     dres <- run_cli(c(
       "dataset", "delete",
       "--study", study_name,
@@ -83,14 +116,15 @@ if (dataset_name %in% dataset_names) {
       cat("[WARN] Dataset delete command returned non-zero status.\n")
     }
   } else {
-    cat("[INFO] Dry run: would delete dataset ", dataset_name, "\n", sep = "")
+    cat(sprintf("[INFO] Dry run: would delete dataset %s\n", dataset_name))
   }
 } else {
   cat("[INFO] Dataset not found in study; skipping dataset delete.\n")
 }
 
+# Delete study
 if (isTRUE(delete_enabled)) {
-  cat("[INFO] Deleting study: ", study_name, "\n", sep = "")
+  cat(sprintf("[INFO] Deleting study: %s\n", study_name))
   sres <- run_cli(c(
     "study", "delete", study_name,
     "--reason", "cleanup temporary row-read probe study",
@@ -101,9 +135,10 @@ if (isTRUE(delete_enabled)) {
   ))
   cat(paste(sres$output, collapse = "\n"), "\n", sep = "")
 
+  # Handle duplicate archive asset if needed
   if (sres$status != 0L && output_has(sres, "duplicate key value violates unique constraint \"i_assets_studyname\"")) {
     archived_asset <- paste0("archive_study_", gsub("-", "", study_get(client, name = study_name, format = "json")$object$registration$study$study$id[[1]]))
-    cat("[WARN] Duplicate archive asset detected; attempting targeted cleanup of ", archived_asset, "\n", sep = "")
+    cat(sprintf("[WARN] Duplicate archive asset detected; attempting targeted cleanup of %s\n", archived_asset))
     run_cli(c("study", "use", "Archive", "--format", "json"))
     ares <- run_cli(c(
       "asset", "delete",
@@ -127,6 +162,7 @@ if (isTRUE(delete_enabled)) {
     cat(paste(sres2$output, collapse = "\n"), "\n", sep = "")
   }
 
+  # Verify deletion
   existing <- run_cli(c("study", "list", "--format", "json"))
   if (any(grepl(paste0('"name": "', study_name, '"'), existing$output, fixed = TRUE))) {
     cat("[WARN] Study still present after delete attempts.\n")
@@ -136,6 +172,6 @@ if (isTRUE(delete_enabled)) {
     cat("[INFO] Current study reset to Rfam_Database_Collection.\n")
   }
 } else {
-  cat("[INFO] Dry run: would delete study ", study_name, "\n", sep = "")
+  cat(sprintf("[INFO] Dry run: would delete study %s\n", study_name))
   cat("[INFO] Set AHRI_TRE_DELETE_PROBE=true to perform deletion.\n")
 }

@@ -1,26 +1,38 @@
+#' Contract Smoke Test
+#'
+#' Performs a comprehensive integration test against a live runtime:
+#' - loads the C ABI
+#' - checks compatibility
+#' - starts/ensures the daemon
+#' - executes two protocol requests (one success, one failure)
+#' - stops the daemon
+#' - returns a diagnostic report with redacted sensitive information.
+#'
+#' @name contract_smoke
+NULL
+
 SMOKE_PROTOCOL_VERSION <- "1.0.0"
 SMOKE_SUCCESS_KIND <- "session.list"
 SMOKE_FAILURE_KIND <- "binding.contract_smoke.unsupported"
 REDACTED <- "<redacted>"
 SENSITIVE_DIAGNOSTIC_KEYS <- c(
-  "body",
-  "cache_file",
-  "connection_string",
-  "daemon_binary",
-  "daemon_endpoint",
-  "lake",
-  "lake_data",
-  "lake_db",
-  "password",
-  "path",
-  "raw_request",
-  "request",
-  "root",
-  "secret",
-  "socket",
-  "token"
+  "body", "cache_file", "connection_string", "daemon_binary",
+  "daemon_endpoint", "lake", "lake_data", "lake_db", "password",
+  "path", "raw_request", "request", "root", "secret", "socket", "token"
 )
 
+#' Run the contract smoke test
+#'
+#' @param runtime_root Character. Explicit runtime root path (optional).
+#' @param stop_runtime Logical. If `TRUE`, stop the daemon after the test.
+#' @param readiness_timeout_ms Integer. Timeout for daemon readiness.
+#' @return A report object of class `ahri_tre_contract_smoke_report`.
+#' @export
+#' @examples
+#' \dontrun{
+#' report <- run_contract_smoke()
+#' print(report$compatibility)
+#' }
 run_contract_smoke <- function(
   runtime_root = NULL,
   stop_runtime = TRUE,
@@ -90,6 +102,8 @@ run_contract_smoke <- function(
   )
 }
 
+#' Create a success request for smoke test
+#' @noRd
 smoke_success_request <- function() {
   list(
     protocol_version = SMOKE_PROTOCOL_VERSION,
@@ -98,6 +112,8 @@ smoke_success_request <- function() {
   )
 }
 
+#' Create a failure request for smoke test
+#' @noRd
 smoke_failure_request <- function() {
   list(
     protocol_version = SMOKE_PROTOCOL_VERSION,
@@ -106,6 +122,8 @@ smoke_failure_request <- function() {
   )
 }
 
+#' Summarize payloads from smoke test
+#' @noRd
 payload_smoke_summary <- function(result) {
   payloads <- result$payloads %||% list()
   if (length(payloads) == 0L) {
@@ -130,6 +148,8 @@ payload_smoke_summary <- function(result) {
   )
 }
 
+#' Redact sensitive information from diagnostic output
+#' @noRd
 redact_diagnostics <- function(value) {
   if (is.list(value)) {
     result <- lapply(names(value), function(name) {
@@ -148,6 +168,8 @@ redact_diagnostics <- function(value) {
   value
 }
 
+#' Summarize compatibility info
+#' @noRd
 compatibility_summary <- function(compatibility) {
   list(
     abi_version = compatibility$abi_version,
@@ -159,11 +181,15 @@ compatibility_summary <- function(compatibility) {
   )
 }
 
+#' Safely summarize a lifecycle envelope
+#' @noRd
 safe_lifecycle_summary <- function(envelope) {
   keys <- c("schema", "schema_version", "kind", "status", "action", "message", "diagnostics")
   redact_diagnostics(envelope[intersect(keys, names(envelope))])
 }
 
+#' Safely summarize a protocol envelope
+#' @noRd
 safe_envelope_summary <- function(envelope) {
   redact_diagnostics(list(
     ok = envelope$ok %||% NULL,
@@ -174,6 +200,8 @@ safe_envelope_summary <- function(envelope) {
   ))
 }
 
+#' Check if a protocol result indicates failure
+#' @noRd
 protocol_result_is_failure <- function(result) {
   ok <- result$envelope$ok
   if (is.logical(ok) && length(ok) == 1L) {
@@ -182,6 +210,8 @@ protocol_result_is_failure <- function(result) {
   !is.null(result$envelope$error) || !is.null(result$envelope$failure)
 }
 
+#' Check if a diagnostic key is sensitive
+#' @noRd
 diagnostic_key_is_sensitive <- function(name) {
   key <- tolower(name)
   any(vapply(SENSITIVE_DIAGNOSTIC_KEYS, function(sensitive) {
@@ -189,6 +219,8 @@ diagnostic_key_is_sensitive <- function(name) {
   }, logical(1)))
 }
 
+#' Check if a string looks like a path or secret
+#' @noRd
 looks_path_or_secret <- function(value) {
   lower <- tolower(value)
   grepl("password=", lower, fixed = TRUE) ||

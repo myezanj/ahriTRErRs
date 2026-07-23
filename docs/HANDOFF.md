@@ -102,10 +102,21 @@ Latest backend handoff report:
 
 Current validation snapshot:
 
+- Session preflight is now explicit before RFAM study reads. The preferred
+  setup path is `Rscript inst/examples/open_oauth_session.r`, which writes a
+  stable profile at `.runtime/ahri-tre-open-oauth.env`, runs
+  `session open-oauth --profile`, and exits non-zero if the session is still
+  inactive after the OAuth attempt.
+- `inst/examples/write_oauth_profile.r` remains available as the lower-level
+  helper when only the validated OAuth profile file is needed.
+- `inst/examples/read_rfam.r` now exits non-zero by default when no live TRE
+  session is available; set `AHRI_TRE_FAIL_ON_MISSING_SESSION=false` for
+  diagnostics-only runs that should keep the previous zero-exit behavior.
 - Strict row-read validation (`inst/examples/validate_row_read_strict.r`) fails
   for `Rfam_Database_Collection` because no RFAM dataset rows are currently
   readable in this backend state.
 - Relaxed diagnostics (`inst/examples/read_rfam.r` with
+  `AHRI_TRE_FAIL_ON_MISSING_SESSION=false`,
   `AHRI_TRE_ROW_PREFLIGHT_FAIL_FAST=false` and
   `AHRI_TRE_ENFORCE_ROW_READ=false`) enumerate all affected RFAM datasets and
   missing DuckLake tables.

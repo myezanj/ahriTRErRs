@@ -1,0 +1,331 @@
+> source("/workspaces/ahriTRErRs/build_release.R", encoding = "UTF-8")
+[INFO] Respecting AHRI_TRE_SKIP_AUTO_DUCKDB_INSTALL=1
+[INFO] languageserver already installed (lib: /home/vscode/R/x86_64-pc-linux-gnu-library/4.4)
+[INFO] build tooling already installed (lib: /home/vscode/R/x86_64-pc-linux-gnu-library/4.4)
+[INFO] remotes already installed (lib: /home/vscode/R/x86_64-pc-linux-gnu-library/4.4)
+[INFO] Ensuring package dependencies from DESCRIPTION are installed...
+[INFO] Repository dependencies are installed.
+
+================================================================================
+Building ahriTRErRs Package 
+================================================================================
+
+Package: ahriTRErRs
+Version: 0.1.0
+Platform: unix
+R version: R version 4.4.2 (2024-10-31)
+[INFO] DuckLake runtime settings:
+  AHRI_TRE_DUCKLAKE_AUTO_MIGRATION=<unset>
+  AHRI_TRE_SKIP_DUCKLAKE_ATTACH=<unset>
+  duckdb package version=1.2.0
+  duckdb engine version=v1.2.0
+  ducklake extension metadata unavailable
+
+[09:08:43] Preparing RStudio project metadata for source build
+  ℹ .Rproj.user is absent or could not be moved; continuing build.
+
+[09:08:43] Staging bundled PostgreSQL runtime into package
+  ℹ local_pg not found in workspace; skipping bundled PostgreSQL runtime staging.
+
+[09:08:43] Cleaning old build artifacts from src/
+  ✓ Removed old .o, .so, .dll files from src/
+
+[09:08:43] Ensuring src/pg_oauth_hook_connect.so is present and up to date
+  ℹ src/pg_oauth_hook_connect.c not found. Skipping optional helper build for this package.
+  ✓ Release directory already exists: release 
+
+[09:08:43] Generating documentation
+[INFO] roxygen2 already installed (lib: /home/vscode/R/x86_64-pc-linux-gnu-library/4.4)
+ℹ Loading ahriTRErRs
+ℹ Re-compiling ahriTRErRs (debug build)
+── R CMD INSTALL ─────────────────────────────────────────────────────────────────────────────────
+─  installing *source* package ‘ahriTRErRs’ ...
+   ** using staged installation
+   ** libs
+   using C compiler: ‘gcc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0’
+   gcc -I"/usr/local/lib/R/include" -DNDEBUG   -I/usr/local/include    -fpic  -g -O2 -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -g  -UNDEBUG -Wall -pedantic -g -O0 -fdiagnostics-color=always -c ffi_bridge.c -o ffi_bridge.o
+   ffi_bridge.c: In function ‘ahri_tre_client_finalizer’:
+   ffi_bridge.c:115:17: warning: ISO C forbids conversion of object pointer to function pointer type [-Wpedantic]
+     115 |                 (void (*)(ahri_tre_client *))tre_dlsym(handle, "ahri_tre_client_free");
+         |                 ^
+   ffi_bridge.c: In function ‘runtime_config’:
+   ffi_bridge.c:169:9: warning: ISO C forbids conversion of object pointer to function pointer type [-Wpedantic]
+     169 |         (ahri_tre_runtime_config (*)(void))symbol(handle, "ahri_tre_runtime_config_default");
+         |         ^
+   ffi_bridge.c: In function ‘ahri_tre_owned_string’:
+   ffi_bridge.c:193:27: warning: ISO C forbids conversion of object pointer to function pointer type [-Wpedantic]
+     193 |     char *(*func)(void) = (char *(*)(void))symbol(handle, name);
+         |                           ^
+   ffi_bridge.c:194:35: warning: ISO C forbids conversion of object pointer to function pointer type [-Wpedantic]
+     194 |     void (*string_free)(char *) = (void (*)(char *))symbol(handle, "ahri_tre_string_free");
+         |                                   ^
+   ffi_bridge.c: In function ‘ahri_tre_status_message_bridge’:
+   ffi_bridge.c:207:9: warning: ISO C forbids conversion of object pointer to function pointer type [-Wpedantic]
+     207 |         (const char *(*)(ahri_tre_status))symbol(handle, "ahri_tre_status_message");
+         |         ^
+   ffi_bridge.c: In function ‘ahri_tre_result_response_json_bridge’:
+   ffi_bridge.c:220:9: warning: ISO C forbids conversion of object pointer to function pointer type [-Wpedantic]
+     220 |         (const char *(*)(const ahri_tre_result *))symbol(handle, "ahri_tre_result_response_json_borrowed");
+         |         ^
+   ffi_bridge.c: In function ‘ahri_tre_result_free_bridge’:
+   ffi_bridge.c:234:13: warning: ISO C forbids conversion of object pointer to function pointer type [-Wpedantic]
+     234 |             (void (*)(ahri_tre_result *))symbol(handle, "ahri_tre_result_free");
+         |             ^
+   ffi_bridge.c: In function ‘ahri_tre_runtime_call_bridge’:
+   ffi_bridge.c:250:16: warning: ISO C forbids conversion of object pointer to function pointer type [-Wpedantic]
+     250 |         func = (ahri_tre_status (*)(const ahri_tre_runtime_config *, ahri_tre_result **))symbol(handle, "ahri_tre_runtime_status");
+         |                ^
+   ffi_bridge.c:252:16: warning: ISO C forbids conversion of object pointer to function pointer type [-Wpedantic]
+     252 |         func = (ahri_tre_status (*)(const ahri_tre_runtime_config *, ahri_tre_result **))symbol(handle, "ahri_tre_runtime_discover_daemon_binary");
+         |                ^
+   ffi_bridge.c:254:16: warning: ISO C forbids conversion of object pointer to function pointer type [-Wpedantic]
+     254 |         func = (ahri_tre_status (*)(const ahri_tre_runtime_config *, ahri_tre_result **))symbol(handle, "ahri_tre_runtime_ensure");
+         |                ^
+   ffi_bridge.c:256:16: warning: ISO C forbids conversion of object pointer to function pointer type [-Wpedantic]
+     256 |         func = (ahri_tre_status (*)(const ahri_tre_runtime_config *, ahri_tre_result **))symbol(handle, "ahri_tre_runtime_stop");
+         |                ^
+   ffi_bridge.c: In function ‘ahri_tre_client_create_bridge’:
+   ffi_bridge.c:270:9: warning: ISO C forbids conversion of object pointer to function pointer type [-Wpedantic]
+     270 |         (ahri_tre_client_config (*)(void))symbol(handle, "ahri_tre_client_config_default");
+         |         ^
+   ffi_bridge.c:272:9: warning: ISO C forbids conversion of object pointer to function pointer type [-Wpedantic]
+     272 |         (ahri_tre_status (*)(const ahri_tre_client_config *, const ahri_tre_runtime_config *, ahri_tre_client **))symbol(handle, "ahri_tre_client_create_with_runtime_config");
+         |         ^
+   ffi_bridge.c: In function ‘ahri_tre_client_free_bridge’:
+   ffi_bridge.c:292:13: warning: ISO C forbids conversion of object pointer to function pointer type [-Wpedantic]
+     292 |             (void (*)(ahri_tre_client *))symbol(handle, "ahri_tre_client_free");
+         |             ^
+   ffi_bridge.c: In function ‘ahri_tre_client_execute_protocol_json_bridge’:
+   ffi_bridge.c:307:9: warning: ISO C forbids conversion of object pointer to function pointer type [-Wpedantic]
+     307 |         (ahri_tre_status (*)(ahri_tre_client *, const uint8_t *, size_t, ahri_tre_result **))symbol(handle, "ahri_tre_client_execute_protocol_json");
+         |         ^
+   ffi_bridge.c: In function ‘ahri_tre_result_payload_count_bridge’:
+   ffi_bridge.c:319:9: warning: ISO C forbids conversion of object pointer to function pointer type [-Wpedantic]
+     319 |         (size_t (*)(const ahri_tre_result *))symbol(handle, "ahri_tre_result_payload_count");
+         |         ^
+   ffi_bridge.c: In function ‘ahri_tre_result_payload_descriptor_bridge’:
+   ffi_bridge.c:330:9: warning: ISO C forbids conversion of object pointer to function pointer type [-Wpedantic]
+     330 |         (ahri_tre_status (*)(const ahri_tre_result *, size_t, ahri_tre_payload_descriptor *))symbol(handle, "ahri_tre_result_payload_descriptor");
+         |         ^
+   ffi_bridge.c: In function ‘ahri_tre_result_payload_bytes_bridge’:
+   ffi_bridge.c:359:9: warning: ISO C forbids conversion of object pointer to function pointer type [-Wpedantic]
+     359 |         (ahri_tre_status (*)(const ahri_tre_result *, size_t, ahri_tre_byte_view *))symbol(handle, "ahri_tre_result_payload_bytes_borrowed");
+         |         ^
+   gcc -shared -L/usr/local/lib/R/lib -L/usr/local/lib -o ahriTRErRs.so ffi_bridge.o -L/usr/local/lib/R/lib -lR
+   installing to /tmp/RtmpbrUMDr/devtools_install_6477beb9c79/00LOCK-ahriTRErRs/00new/ahriTRErRs/libs
+   ** checking absolute paths in shared objects and dynamic libraries
+─  DONE (ahriTRErRs)
+ahriTRErRs 0.1.0 loaded.
+Set AHRI_TRE_RUNTIME_ROOT to use runtime operations.
+✖ Skipping NAMESPACE
+ℹ It already exists and was not generated by roxygen2.
+build_release  ✓ Documentation generated
+
+[09:08:51] Cleaning compiled artifacts left by devtools::document()
+  ✓ Cleaned src/*.{o,so,dll}
+
+[09:08:51] Building source tarball (.tar.gz) into ./release
+  Building source tarball with staged R CMD build...
+* checking for file ‘./DESCRIPTION’ ... OK
+* preparing ‘ahriTRErRs’:
+* checking DESCRIPTION meta-information ... OK
+* cleaning src
+* checking for LF line-endings in source and make files and shell scripts
+* checking for empty or unneeded directories
+Removed empty directory ‘ahriTRErRs/.lake’
+Removed empty directory ‘ahriTRErRs/tests/testthat/_snaps’
+* building ‘ahriTRErRs_0.1.0.tar.gz’
+
+  ✓ Source tarball created via R CMD build in ./release: ahriTRErRs_0.1.0.tar.gz 
+  ✓ Source tarball created in ./release: ahriTRErRs_0.1.0.tar.gz 
+
+[09:09:00] Building Windows binary (.zip)
+  ℹ Skipping Windows binary (non-Windows platform)
+  ℹ To create Windows binary on this platform, use: R CMD build --binary .
+
+[09:09:00] Copying artifacts to ./release directory
+  ✓ Source tarball already in ./release: ahriTRErRs_0.1.0.tar.gz 
+
+[09:09:00] Verifying artifacts in ./release directory
+  ✓ ahriTRErRs_0.1.0.tar.gz exists ( 55019 bytes)
+
+================================================================================
+Build Complete - Artifacts in ./release 
+================================================================================
+
+Release artifacts in ./release folder:
+-------------------------------------------------------------------------------- 
+  📦 ahriTRErRs_0.1.0.tar.gz 
+     Location: /workspaces/ahriTRErRs/release/ahriTRErRs_0.1.0.tar.gz 
+     Size: 55019 bytes
+
+================================================================================ 
+INSTALLATION INSTRUCTIONS
+================================================================================ 
+
+  📦 Install source package (all platforms):
+     install.packages("./release/ahriTRErRs_0.1.0.tar.gz", repos = NULL, type = "source")
+
+  📦 Load the package:
+     library(ahriTRErRs)
+
+
+[09:09:00] Installing package from freshly built artifact
+  ℹ Installing from: release/ahriTRErRs_0.1.0.tar.gz (type=source)
+Installing package into ‘/home/vscode/R/x86_64-pc-linux-gnu-library/4.4’
+(as ‘lib’ is unspecified)
+* installing *source* package ‘ahriTRErRs’ ...
+** using staged installation
+** libs
+using C compiler: ‘gcc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0’
+gcc -I"/usr/local/lib/R/include" -DNDEBUG   -I/usr/local/include    -fpic  -g -O2 -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -g  -c ffi_bridge.c -o ffi_bridge.o
+gcc -shared -L/usr/local/lib/R/lib -L/usr/local/lib -o ahriTRErRs.so ffi_bridge.o -L/usr/local/lib/R/lib -lR
+installing to /home/vscode/R/x86_64-pc-linux-gnu-library/4.4/00LOCK-ahriTRErRs/00new/ahriTRErRs/libs
+** R
+** inst
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+** building package indices
+** testing if installed package can be loaded from temporary location
+Error: package or namespace load failed for ‘ahriTRErRs’ in namespaceExport(ns, exports):
+ undefined exports: asset_delete, asset_duo_clear, asset_duo_list, asset_duo_replace, asset_get, asset_list, asset_versions, auth_login, auth_logout, auth_status, completion, daemon_doctor, daemon_start, daemon_status, daemon_stop, daemon_version, datafile_delete, datafile_export, datafile_list, datafile_metadata, datafile_search, dataset_data, dataset_delete, dataset_export, dataset_list, dataset_metadata, dataset_preview, dataset_search, dataset_withdraw, datastore_adopt, datastore_create, datastore_info, datastore_list, datastore_ping, datastore_rotate, datastore_schema, doctor, domain_add, domain_delete, domain_get, domain_list, entity_add, entity_delete, entity_get, entity_instance_add, entity_instance_asset_link_add, entity_instance_asset_link_list, entity_instance_dataset_link_add, entity_instance_dataset_link_get, entity_instance_dataset_link_list, entity_instance_datasets, entity_instance_ensure, entity_instance_get, entity_instance_list, entity_instance_map_add, entity_instance_map_get, entity_instance_map_list, entity_list, entity_relation_add, entity_relation_delete, entity_relation_get, entity_relation_instance_add, entity_relation_instance_asset_link_add, entity_relation_instance_asset_link_list, entity_relation_instance_dataset_link_add, entity_relation_instance_dataset_link_get, entity_relation_instance_dataset_link_list, entity_relation_instance_ensure, entity_relation_instance_get, entity_relation_instance_list, entity_relation_instance_map_add, entity_relation_instance_map_get, entity_relation_instance_map_list, entity_relation_list, entity_relation_search, entity_search, ingest_datafile, ingest_dataset_datafile, ingest_dataset_sql, ingest_dataset_table, ingest_redcap_project, schema_get, schema_list, session_close, session_list, session_open, session_reopen, session_status, session_use, study_access_grant, study_access_list, study_access_revoke, study_add, study_add_domain, study_clear_current, study_context_list, study_current, study_custodians_add, study_custodians_list, study_custodians_remove, study_custodians_transfer, study_delete, study_duo_list, study_duo_replace, study_get, study_list, study_search, study_use, tag_get, tag_list, tag_set, transformation_list, variable_add, variable_delete, variable_get, variable_list, variable_search, variable_update, vocabulary_add, vocabulary_delete, vocabulary_get, vocabulary_list
+Error: loading failed
+Execution halted
+ERROR: loading failed
+* removing ‘/home/vscode/R/x86_64-pc-linux-gnu-library/4.4/ahriTRErRs’
+* restoring previous ‘/home/vscode/R/x86_64-pc-linux-gnu-library/4.4/ahriTRErRs’
+  ✓ Package installed successfully from release artifact.
+
+[09:09:01] Restoring temporary build staging
+
+================================================================================
+Done 
+================================================================================
+Warning messages:
+1: Objects listed as exports, but not present in namespace:
+• asset_delete
+• asset_duo_clear
+• asset_duo_list
+• asset_duo_replace
+• asset_get
+• asset_list
+• asset_versions
+• auth_login
+• auth_logout
+• auth_status
+• completion
+• daemon_doctor
+• daemon_start
+• daemon_status
+• daemon_stop
+• daemon_version
+• datafile_delete
+• datafile_export
+• datafile_list
+• datafile_metadata
+• datafile_search
+• dataset_data
+• dataset_delete
+• dataset_export
+• dataset_list
+• dataset_metadata
+• dataset_preview
+• dataset_search
+• dataset_withdraw
+• datastore_adopt
+• datastore_create
+• datastore_info
+• datastore_list
+• datastore_ping
+• datastore_rotate
+• datastore_schema
+• doctor
+• domain_add
+• domain_delete
+• domain_get
+• domain_list
+• entity_add
+• entity_delete
+• entity_get
+• entity_instance_add
+• entity_instance_asset_link_add
+• entity_instance_asset_link_list
+• entity_instance_dataset_link_add
+• entity_instance_dataset_link_get
+• entity_instance_dataset_link_list
+• entity_instance_datasets
+• entity_instance_ensure
+• entity_instance_get
+• entity_instance_list
+• entity_instance_map_add
+• entity_instance_map_get
+• entity_instance_map_list
+• entity_list
+• entity_relation_add
+• entity_relation_delete
+• entity_relation_get
+• entity_relation_instance_add
+• entity_relation_instance_asset_link_add
+• entity_relation_instance_asset_link_list
+• entity_relation_instance_dataset_link_add
+• entity_relation_instance_dataset_link_get
+• entity_relation_instance_dataset_link_list
+• entity_relation_instance_ensure
+• entity_relation_instance_get
+• entity_relation_instance_list
+• entity_relation_instance_map_add
+• entity_relation_instance_map_get
+• entity_relation_instance_map_list
+• entity_relation_list
+• entity_relation_search
+• entity_search
+• ingest_datafile
+• ingest_dataset_datafile
+• ingest_dataset_sql
+• ingest_dataset_table
+• ingest_redcap_project
+• schema_get
+• schema_list
+• session_close
+• session_list
+• session_open
+• session_reopen
+• session_status
+• session_use
+• study_access_grant
+• study_access_list
+• study_access_revoke
+• study_add
+• study_add_domain
+• study_clear_current
+• study_context_list
+• study_current
+• study_custodians_add
+• study_custodians_list
+• study_custodians_remove
+• study_custodians_transfer
+• study_delete
+• study_duo_list
+• study_duo_replace
+• study_get
+• study_list
+• study_search
+• study_use
+• tag_get
+• tag_list
+• tag_set
+• transformation_list
+• variable_add
+• variable_delete
+• variable_get
+• variable_list
+• variable_search
+• variable_update
+• version
+• vocabulary_add
+• vocabulary_delete
+• vocabulary_get
+• vocabulary_list 
+2: In install.packages(install_target, repos = NULL, type = install_type) :
+  installation of package ‘release/ahriTRErRs_0.1.0.tar.gz’ had non-zero exit status

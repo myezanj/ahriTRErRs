@@ -19,8 +19,18 @@ Imports:
     methods
 Suggests:
     arrow,
+    DBI,
     devtools,
+    duckdb,
+    httr,
+    knitr,
+    languageserver,
+    odbc,
+    pkgdown,
     pkgload,
+    remotes,
+    rmarkdown,
+    roxygen2,
     testthat (>= 3.0.0),
     tibble,
     withr
