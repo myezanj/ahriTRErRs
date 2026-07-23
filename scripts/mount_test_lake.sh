@@ -5,6 +5,7 @@ set -e
 
 MOUNT_POINT="/mnt/test_lake/pilot_tre"
 SMB_SOURCE="//DBN-Pure-Nas-01.ahri.org/testlake/pilot_tre"
+ENV_FILE="/workspaces/ahriTRErRs/.env"
 
 echo "╔═══════════════════════════════════════════════════════╗"
 echo "║      Test Lake Auto-Mount Setup                       ║"
@@ -19,15 +20,15 @@ if mount | grep -q "$MOUNT_POINT"; then
 fi
 
 # Check credentials from .env
-if [ ! -f "/workspaces/ahriTRErRs/.env" ]; then
-  echo "✗ Error: /workspaces/ahriTRErRs/.env not found"
+if [ ! -f "$ENV_FILE" ]; then
+  echo "✗ Error: $ENV_FILE not found"
   exit 1
 fi
 
 # Extract credentials from .env
-SAMBA_DOMAIN=$(grep "^SAMBA_DOMAIN=" /workspaces/ahriTRErRs/.devcontainer/.env | cut -d'=' -f2 | tr -d '"')
-SAMBA_USERNAME=$(grep "^SAMBA_USERNAME=" /workspaces/ahriTRErRs/.devcontainer/.env | cut -d'=' -f2 | tr -d '"')
-SAMBA_PASSWORD=$(grep "^SAMBA_PASSWORD=" /workspaces/ahriTRErRs/.devcontainer/.env | cut -d'=' -f2 | tr -d '"')
+SAMBA_DOMAIN=$(grep "^SAMBA_DOMAIN=" "$ENV_FILE" | cut -d'=' -f2 | tr -d '"')
+SAMBA_USERNAME=$(grep "^SAMBA_USERNAME=" "$ENV_FILE" | cut -d'=' -f2 | tr -d '"')
+SAMBA_PASSWORD=$(grep "^SAMBA_PASSWORD=" "$ENV_FILE" | cut -d'=' -f2 | tr -d '"')
 
 if [ -z "$SAMBA_DOMAIN" ] || [ -z "$SAMBA_USERNAME" ] || [ -z "$SAMBA_PASSWORD" ]; then
   echo "✗ Error: SAMBA_DOMAIN, SAMBA_USERNAME, or SAMBA_PASSWORD not found in .env"
@@ -41,12 +42,43 @@ echo "   Domain:      $SAMBA_DOMAIN"
 echo "   Credentials: $SAMBA_DOMAIN\\$SAMBA_USERNAME (from .env)"
 echo ""
 
+if ! command -v mount.cifs >/dev/null 2>&1; then
+  echo "📦 Installing cifs-utils (mount.cifs)..."
+  sudo apt-get update >/dev/null 2>&1 || true
+  if ! sudo apt-get install -y --no-install-recommends cifs-utils >/dev/null 2>&1; then
+    echo "✗ Failed to install cifs-utils"
+    exit 1
+  fi
+fi
+
 # Mount the share
 echo "🔗 Mounting SMB share..."
 MOUNT_UID=$(id -u)
 MOUNT_GID=$(id -g)
+AUTH_OPTS="username=$SAMBA_USERNAME,password=$SAMBA_PASSWORD"
+if [ -n "$SAMBA_DOMAIN" ]; then
+  AUTH_OPTS="domain=$SAMBA_DOMAIN,$AUTH_OPTS"
+fi
+
+SMB_HOST=$(echo "$SMB_SOURCE" | sed -E 's#^//([^/]+)/.*#\1#')
+echo "🔎 Preflight: resolving $SMB_HOST..."
+SMB_IP=$(getent hosts "$SMB_HOST" | awk '{print $1}' | head -n1 || true)
+if [ -z "$SMB_IP" ]; then
+  echo "✗ DNS resolution failed for $SMB_HOST"
+  exit 1
+fi
+echo "✓ Resolved $SMB_HOST -> $SMB_IP"
+
+echo "🔎 Preflight: checking TCP/445 to $SMB_IP..."
+if ! timeout 5 bash -c "</dev/tcp/$SMB_IP/445" 2>/dev/null; then
+  echo "✗ Network check failed: cannot reach $SMB_IP on TCP 445"
+  echo "  This is a connectivity/firewall/routing issue, not script syntax."
+  exit 1
+fi
+echo "✓ TCP/445 reachable"
+
 sudo mount -t cifs "$SMB_SOURCE" "$MOUNT_POINT" \
-  -o "username=$SAMBA_DOMAIN\\$SAMBA_USERNAME,password=$SAMBA_PASSWORD,vers=3.0,uid=$MOUNT_UID,gid=$MOUNT_GID,file_mode=0664,dir_mode=0775,noperm" 2>/dev/null && \
+  -o "$AUTH_OPTS,vers=3.0,uid=$MOUNT_UID,gid=$MOUNT_GID,file_mode=0664,dir_mode=0775,noperm" 2>/dev/null && \
   echo "✓ Mount successful" || \
   echo "✗ Mount failed (check network connectivity and credentials)"
 

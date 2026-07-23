@@ -18,6 +18,8 @@ RUN apt-get update \
         cifs-utils \
         curl \
         git \
+        iproute2 \
+        iputils-ping \
         jq \
         keyutils \
         libcurl4-openssl-dev \

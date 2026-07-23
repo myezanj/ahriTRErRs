@@ -4,6 +4,7 @@ set -euo pipefail
 mount_tre_lake_if_configured() {
   local lake_src="${TRE_TEST_LAKE_PATH_WINDOWS:-}"
   local lake_dst="${TRE_TEST_LAKE_PATH:-}"
+  local samba_domain="${SAMBA_DOMAIN:-}"
   local samba_user="${SAMBA_USERNAME:-}"
   local samba_pass="${SAMBA_PASSWORD:-}"
 
@@ -33,8 +34,40 @@ mount_tre_lake_if_configured() {
   uid="$(id -u)"
   gid="$(id -g)"
 
+  # Ensure mount.cifs is present; install cifs-utils when missing.
+  if ! command -v mount.cifs >/dev/null 2>&1; then
+    echo "[INFO] mount.cifs not found. Installing cifs-utils..."
+    ${as_root} apt-get update >/dev/null 2>&1 || true
+    if ! ${as_root} apt-get install -y --no-install-recommends cifs-utils >/dev/null 2>&1; then
+      echo "[WARN] Unable to install cifs-utils automatically."
+      return 0
+    fi
+  fi
+
+  local auth_opts
+  auth_opts="username=${samba_user},password=${samba_pass}"
+  if [[ -n "${samba_domain}" ]]; then
+    auth_opts="domain=${samba_domain},${auth_opts}"
+  fi
+
+  local smb_host smb_ip
+  smb_host="$(echo "${lake_src}" | sed -E 's#^//([^/]+)/.*#\1#')"
+  echo "[INFO] Preflight: resolving ${smb_host}..."
+  smb_ip="$(getent hosts "${smb_host}" | awk '{print $1}' | head -n1 || true)"
+  if [[ -z "${smb_ip}" ]]; then
+    echo "[WARN] DNS resolution failed for ${smb_host}."
+    return 0
+  fi
+  echo "[INFO] Resolved ${smb_host} -> ${smb_ip}."
+
+  echo "[INFO] Preflight: checking TCP/445 to ${smb_ip}..."
+  if ! timeout 5 bash -c "</dev/tcp/${smb_ip}/445" 2>/dev/null; then
+    echo "[WARN] Cannot reach ${smb_ip} on TCP 445."
+    return 0
+  fi
+
   if ${as_root} mount -t cifs "${lake_src}" "${lake_dst}" \
-      -o "username=${samba_user},password=${samba_pass},vers=3.0,uid=${uid},gid=${gid},file_mode=0664,dir_mode=0775,noperm"; then
+      -o "${auth_opts},vers=3.0,uid=${uid},gid=${gid},file_mode=0664,dir_mode=0775,noperm"; then
     echo "[INFO] TRE Samba mount successful: ${lake_src} -> ${lake_dst}."
   else
     echo "[WARN] TRE Samba mount failed: ${lake_src} -> ${lake_dst}."
