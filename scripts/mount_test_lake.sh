@@ -5,7 +5,6 @@ set -e
 
 MOUNT_POINT="/mnt/test_lake/pilot_tre"
 SMB_SOURCE="//DBN-Pure-Nas-01.ahri.org/testlake/pilot_tre"
-CREDS_FILE="/root/.smbcredentials"
 
 echo "╔═══════════════════════════════════════════════════════╗"
 echo "║      Test Lake Auto-Mount Setup                       ║"
@@ -40,23 +39,12 @@ echo "   Mount Point: $MOUNT_POINT"
 echo "   Credentials: $SAMBA_USERNAME (from .env)"
 echo ""
 
-# Create credentials file (secure: 600 permissions)
-if [ ! -f "$CREDS_FILE" ]; then
-  echo "🔐 Creating secure credentials file..."
-  sudo tee "$CREDS_FILE" > /dev/null <<EOF
-username=$SAMBA_USERNAME
-password=$SAMBA_PASSWORD
-EOF
-  sudo chmod 600 "$CREDS_FILE"
-  echo "✓ Credentials file created: $CREDS_FILE (600)"
-else
-  echo "✓ Credentials file already exists"
-fi
-
 # Mount the share
 echo "🔗 Mounting SMB share..."
+MOUNT_UID=$(id -u)
+MOUNT_GID=$(id -g)
 sudo mount -t cifs "$SMB_SOURCE" "$MOUNT_POINT" \
-  -o credentials="$CREDS_FILE",uid=1000,gid=1000,file_mode=0755,dir_mode=0755 2>/dev/null && \
+  -o "username=$SAMBA_USERNAME,password=$SAMBA_PASSWORD,vers=3.0,uid=$MOUNT_UID,gid=$MOUNT_GID,file_mode=0664,dir_mode=0775,noperm" 2>/dev/null && \
   echo "✓ Mount successful" || \
   echo "✗ Mount failed (check network connectivity and credentials)"
 
