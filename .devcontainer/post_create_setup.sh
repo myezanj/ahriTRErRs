@@ -75,9 +75,21 @@ ensure_test_lake_mount() {
   echo "✓ Resolved ${smb_host} -> ${smb_ip}"
 
   echo "🔎 Preflight: checking TCP/445 to ${smb_ip}..."
-  if ! timeout 5 bash -c "</dev/tcp/${smb_ip}/445" 2>/dev/null; then
-    echo "[WARN] TRE Samba mount skipped: cannot reach ${smb_ip} on TCP 445."
+  local smb_port
+  smb_port=""
+  if timeout 5 bash -c "</dev/tcp/${smb_ip}/445" 2>/dev/null; then
+    smb_port="445"
+    echo "✓ TCP/445 reachable"
+  elif timeout 5 bash -c "</dev/tcp/${smb_ip}/139" 2>/dev/null; then
+    smb_port="139"
+    echo "⚠ TCP/445 unreachable; using TCP/139"
+  else
+    echo "[WARN] TRE Samba mount skipped: cannot reach ${smb_ip} on TCP 445 or 139."
     return 0
+  fi
+
+  if [[ "${smb_port}" = "139" ]]; then
+    auth_opts="${auth_opts},port=139"
   fi
 
   # Create credentials file securely

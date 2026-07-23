@@ -61,9 +61,20 @@ mount_tre_lake_if_configured() {
   echo "[INFO] Resolved ${smb_host} -> ${smb_ip}."
 
   echo "[INFO] Preflight: checking TCP/445 to ${smb_ip}..."
-  if ! timeout 5 bash -c "</dev/tcp/${smb_ip}/445" 2>/dev/null; then
-    echo "[WARN] Cannot reach ${smb_ip} on TCP 445."
+  local smb_port
+  smb_port=""
+  if timeout 5 bash -c "</dev/tcp/${smb_ip}/445" 2>/dev/null; then
+    smb_port="445"
+  elif timeout 5 bash -c "</dev/tcp/${smb_ip}/139" 2>/dev/null; then
+    smb_port="139"
+    echo "[INFO] TCP/445 unreachable; using TCP/139."
+  else
+    echo "[WARN] Cannot reach ${smb_ip} on TCP 445 or 139."
     return 0
+  fi
+
+  if [[ "${smb_port}" = "139" ]]; then
+    auth_opts="${auth_opts},port=139"
   fi
 
   if ${as_root} mount -t cifs "${lake_src}" "${lake_dst}" \

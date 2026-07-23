@@ -70,12 +70,25 @@ fi
 echo "✓ Resolved $SMB_HOST -> $SMB_IP"
 
 echo "🔎 Preflight: checking TCP/445 to $SMB_IP..."
-if ! timeout 5 bash -c "</dev/tcp/$SMB_IP/445" 2>/dev/null; then
-  echo "✗ Network check failed: cannot reach $SMB_IP on TCP 445"
-  echo "  This is a connectivity/firewall/routing issue, not script syntax."
-  exit 1
+SMB_PORT=""
+if timeout 5 bash -c "</dev/tcp/$SMB_IP/445" 2>/dev/null; then
+  SMB_PORT="445"
+  echo "✓ TCP/445 reachable"
+else
+  echo "⚠ TCP/445 unreachable, checking TCP/139..."
+  if timeout 5 bash -c "</dev/tcp/$SMB_IP/139" 2>/dev/null; then
+    SMB_PORT="139"
+    echo "✓ TCP/139 reachable"
+  else
+    echo "✗ Network check failed: cannot reach $SMB_IP on TCP 445 or 139"
+    echo "  This is a connectivity/firewall/routing issue, not script syntax."
+    exit 1
+  fi
 fi
-echo "✓ TCP/445 reachable"
+
+if [ "$SMB_PORT" = "139" ]; then
+  AUTH_OPTS="$AUTH_OPTS,port=139"
+fi
 
 sudo mount -t cifs "$SMB_SOURCE" "$MOUNT_POINT" \
   -o "$AUTH_OPTS,vers=3.0,uid=$MOUNT_UID,gid=$MOUNT_GID,file_mode=0664,dir_mode=0775,noperm" 2>/dev/null && \
