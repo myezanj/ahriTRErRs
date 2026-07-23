@@ -12,30 +12,7 @@
 
 suppressPackageStartupMessages(library(ahriTRErRs))
 
-resolve_runtime_root <- function() {
-  candidates <- unique(c(
-    Sys.getenv("AHRI_TRE_RUNTIME_ROOT", "/opt/ahri-tre-runtime"),
-    file.path(getwd(), ".runtime", "ahri-tre-runtime"),
-    "/workspaces/ahriTRErRs/.runtime/ahri-tre-runtime"
-  ))
-  roots <- normalizePath(path.expand(candidates), mustWork = FALSE)
-  manifests <- file.path(roots, "share", "ahri-tre", "manifest.json")
-  hits <- roots[file.exists(manifests)]
-  if (length(hits) > 0L) hits[[1]] else roots[[1]]
-}
-
 if (file.exists(".env")) readRenviron(".env")
-
-runtime_root <- resolve_runtime_root()
-Sys.setenv(AHRI_TRE_RUNTIME_ROOT = runtime_root)
-cat(sprintf("[INFO] AHRI_TRE_RUNTIME_ROOT=%s\n", runtime_root))
-
-manifest <- file.path(runtime_root, "share", "ahri-tre", "manifest.json")
-if (!file.exists(manifest)) {
-  cat("[WARN] Runtime manifest not found at ", manifest, "\n")
-  cat("[INFO] Install runtime and rerun this example.\n")
-  quit(save = "no", status = 0L)
-}
 
 study_name <- Sys.getenv("AHRI_TRE_STUDY", "Rfam_Database_Collection")
 domain_name <- Sys.getenv("AHRI_TRE_DOMAIN", "")

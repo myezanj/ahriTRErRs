@@ -14,11 +14,6 @@ suppressPackageStartupMessages(library(ahriTRErRs))
 
 if (file.exists(".env")) readRenviron(".env")
 
-resolve_runtime_root <- function() { ... } # same as above
-
-runtime_root <- resolve_runtime_root()
-Sys.setenv(AHRI_TRE_RUNTIME_ROOT = runtime_root)
-
 study_name <- Sys.getenv("AHRI_TRE_STUDY", "")
 dataset_name <- Sys.getenv("AHRI_TRE_DATASET", "")   # for dataset delete
 asset_name <- Sys.getenv("AHRI_TRE_ASSET", "")       # for datafile delete

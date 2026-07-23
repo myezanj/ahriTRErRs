@@ -11,19 +11,6 @@
 
 suppressPackageStartupMessages(library(ahriTRErRs))
 
-# Helper to find runtime root (copied in each script for self-containment)
-resolve_runtime_root <- function() {
-  candidates <- unique(c(
-    Sys.getenv("AHRI_TRE_RUNTIME_ROOT", "/opt/ahri-tre-runtime"),
-    file.path(getwd(), ".runtime", "ahri-tre-runtime"),
-    "/workspaces/ahriTRErRs/.runtime/ahri-tre-runtime"
-  ))
-  roots <- normalizePath(path.expand(candidates), mustWork = FALSE)
-  manifests <- file.path(roots, "share", "ahri-tre", "manifest.json")
-  hits <- roots[file.exists(manifests)]
-  if (length(hits) > 0L) hits[[1]] else roots[[1]]
-}
-
 # Load .env if present
 if (file.exists(".env")) readRenviron(".env")
 
@@ -35,23 +22,10 @@ delete_enabled <- tolower(Sys.getenv("AHRI_TRE_DELETE_PROBE", unset = "false")) 
 cat(sprintf("[INFO] Cleanup target study=%s, dataset=%s\n", study_name, dataset_name))
 cat(sprintf("[INFO] Destructive delete enabled=%s\n", delete_enabled))
 
-# Locate runtime
-runtime_root <- resolve_runtime_root()
-Sys.setenv(AHRI_TRE_RUNTIME_ROOT = runtime_root)
-manifest <- file.path(runtime_root, "share", "ahri-tre", "manifest.json")
-if (!file.exists(manifest)) {
-  cat("[ERROR] Runtime manifest not found. Install runtime first.\n")
-  quit(save = "no", status = 1)
-}
-
-# Determine CLI binary
-ahri_tre_bin <- file.path(runtime_root, "bin", "ahri-tre")
-if (!file.exists(ahri_tre_bin)) {
-  stop("Could not locate ahri-tre binary at ", ahri_tre_bin, call. = FALSE)
-}
-
 # Helper to run CLI commands
 run_cli <- function(args) {
+  runtime_root <- Sys.getenv("AHRI_TRE_RUNTIME_ROOT", "/opt/ahri-tre-runtime")
+  ahri_tre_bin <- file.path(runtime_root, "bin", "ahri-tre")
   env <- c(
     paste0("AHRI_TRE_RUNTIME_ROOT=", runtime_root),
     paste0("LD_LIBRARY_PATH=", file.path(runtime_root, "lib"),

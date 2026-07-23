@@ -5,16 +5,6 @@
 suppressPackageStartupMessages(library(ahriTRErRs))
 if (file.exists(".env")) readRenviron(".env")
 
-resolve_runtime_root <- function() { ... } # same as above
-
-runtime_root <- resolve_runtime_root()
-Sys.setenv(AHRI_TRE_RUNTIME_ROOT = runtime_root)
-manifest <- file.path(runtime_root, "share", "ahri-tre", "manifest.json")
-if (!file.exists(manifest)) {
-  cat("[INFO] Runtime manifest not found. Skipping.\n")
-  quit(save = "no", status = 0L)
-}
-
 client <- AhriTreClient()
 on.exit(close(client), add = TRUE)
 

@@ -10,36 +10,19 @@
 
 suppressPackageStartupMessages(library(ahriTRErRs))
 
-resolve_script_dir <- function() {
-  # Try to locate the helper script
-  candidates <- c(
-    file.path(getwd(), "inst", "examples", "write_oauth_profile.r"),
-    system.file("examples", "write_oauth_profile.r", package = "ahriTRErRs")
-  )
-  hits <- candidates[file.exists(candidates)]
-  if (length(hits) == 0) {
-    stop("Could not locate write_oauth_profile.r in workspace or installed package examples.", call. = FALSE)
-  }
-  hits[[1]]
-}
-
-resolve_runtime_root <- function() {
-  candidates <- unique(c(
-    Sys.getenv("AHRI_TRE_RUNTIME_ROOT", "/opt/ahri-tre-runtime"),
-    file.path(getwd(), ".runtime", "ahri-tre-runtime"),
-    "/workspaces/ahriTRErRs/.runtime/ahri-tre-runtime"
-  ))
-  roots <- normalizePath(path.expand(candidates), mustWork = FALSE)
-  manifests <- file.path(roots, "share", "ahri-tre", "manifest.json")
-  hits <- roots[file.exists(manifests)]
-  if (length(hits) > 0L) hits[[1]] else roots[[1]]
-}
-
 if (file.exists(".env")) readRenviron(".env")
 
 # Source the profile helper
+profile_script <- file.path(getwd(), "inst", "examples", "write_oauth_profile.r")
+if (!file.exists(profile_script)) {
+  profile_script <- system.file("examples", "write_oauth_profile.r", package = "ahriTRErRs")
+}
+if (!file.exists(profile_script)) {
+  stop("Could not locate write_oauth_profile.r", call. = FALSE)
+}
+
 profile_helper <- new.env(parent = globalenv())
-sys.source(resolve_script_dir(), envir = profile_helper)
+sys.source(profile_script, envir = profile_helper)
 
 `%||%` <- function(lhs, rhs) if (is.null(lhs)) rhs else lhs
 
@@ -62,13 +45,8 @@ main <- function() {
     }
   )
 
-  runtime_root <- resolve_runtime_root()
+  runtime_root <- Sys.getenv("AHRI_TRE_RUNTIME_ROOT", "/opt/ahri-tre-runtime")
   Sys.setenv(AHRI_TRE_RUNTIME_ROOT = runtime_root)
-
-  manifest <- file.path(runtime_root, "share", "ahri-tre", "manifest.json")
-  if (!file.exists(manifest)) {
-    abort_with_status(paste("Runtime manifest not found at", manifest))
-  }
 
   cli_bin <- file.path(runtime_root, "bin", "ahri-tre")
   if (!file.exists(cli_bin)) {
@@ -80,7 +58,6 @@ main <- function() {
   cli_env <- c(paste0("LD_LIBRARY_PATH=", paste(unique(c(runtime_lib, ld_path[nzchar(ld_path)])), collapse = ":")))
   args <- c("session", "open-oauth", profile_info$datastore, "--profile", profile_info$profile_path)
 
-  cat("[INFO] Runtime root: ", runtime_root, "\n", sep = "")
   cat("[INFO] OAuth profile: ", profile_info$profile_path, "\n", sep = "")
   cat("[INFO] Command: ", cli_bin, " ", paste(shQuote(args, type = "sh"), collapse = " "), "\n", sep = "")
 
@@ -89,10 +66,9 @@ main <- function() {
     return(invisible(profile_info))
   }
 
-  open_out <- suppressWarnings(system2(cli_bin, args = args, stdout = TRUE, stderr = TRUE, env = cli_env))
-  open_status <- attr(open_out, "status") %||% 0L
-  cat(paste(open_out, collapse = "\n"), "\n", sep = "")
-  if (!identical(as.integer(open_status), 0L)) {
+  open_out <- suppressWarnings(system2(cli_bin, args = args, stdout = "", stderr = "", env = cli_env))
+  open_status <- as.integer(open_out %||% 0L)
+  if (!identical(open_status, 0L)) {
     abort_with_status("session open-oauth did not complete successfully.", open_status)
   }
 

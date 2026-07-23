@@ -11,18 +11,6 @@
 
 suppressPackageStartupMessages(library(ahriTRErRs))
 
-resolve_runtime_root <- function() {
-  candidates <- unique(c(
-    Sys.getenv("AHRI_TRE_RUNTIME_ROOT", "/opt/ahri-tre-runtime"),
-    file.path(getwd(), ".runtime", "ahri-tre-runtime"),
-    "/workspaces/ahriTRErRs/.runtime/ahri-tre-runtime"
-  ))
-  roots <- normalizePath(path.expand(candidates), mustWork = FALSE)
-  manifests <- file.path(roots, "share", "ahri-tre", "manifest.json")
-  hits <- roots[file.exists(manifests)]
-  if (length(hits) > 0L) hits[[1]] else roots[[1]]
-}
-
 if (file.exists(".env")) readRenviron(".env")
 
 study_name <- Sys.getenv("AHRI_TRE_STUDY", "")
@@ -34,9 +22,6 @@ if (!nzchar(study_name) || !nzchar(domain_name) || !nzchar(dataset_name) || !nzc
   cat("[INFO] Set AHRI_TRE_STUDY, AHRI_TRE_DOMAIN, AHRI_TRE_DATASET, AHRI_TRE_SQL to run SQL ingest. Skipping.\n")
   quit(save = "no", status = 0L)
 }
-
-runtime_root <- resolve_runtime_root()
-Sys.setenv(AHRI_TRE_RUNTIME_ROOT = runtime_root)
 
 client <- AhriTreClient()
 on.exit(close(client), add = TRUE)

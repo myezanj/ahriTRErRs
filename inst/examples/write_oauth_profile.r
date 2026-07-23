@@ -69,8 +69,6 @@ main <- function() {
   optional_fields <- c(
     TRE_LAKE_PATH = first_env(c("TRE_LAKE_PATH", "TRE_TEST_LAKE_PATH")),
     TRE_LAKE_DB = first_env(c("TRE_LAKE_DB", "TRE_TEST_LAKE_DB")),
-    LAKE_USER = first_env(c("LAKE_USER")),
-    LAKE_PASSWORD = first_env(c("LAKE_PASSWORD")),
     ORCID_CLIENT_ID = first_env(c("ORCID_CLIENT_ID")),
     ORCID_CLIENT_SECRET = first_env(c("ORCID_CLIENT_SECRET")),
     ORCID_ISSUER = first_env(c("ORCID_ISSUER")),
@@ -88,6 +86,9 @@ main <- function() {
   cat("[INFO] Override output path with AHRI_TRE_OAUTH_PROFILE_OUT if needed.\n")
   cat(sprintf("[INFO] Datastore: %s\n", datastore))
   cat(sprintf("[INFO] ORCID cache file: %s\n", cache_file))
+  runtime_root <- normalizePath(path.expand(
+    first_env(c("AHRI_TRE_RUNTIME_ROOT"), default = "/opt/ahri-tre-runtime")
+  ), mustWork = FALSE)
   cat(sprintf("[INFO] Next step: %s session open-oauth %s --profile %s\n",
               file.path(runtime_root, "bin", "ahri-tre"), datastore, shQuote(output_path, type = "sh")))
   invisible(list(profile_path = output_path, datastore = datastore, cache_file = cache_file))
