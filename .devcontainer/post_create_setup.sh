@@ -4,6 +4,17 @@ set -euo pipefail
 
 echo "📦 Running devcontainer post-create setup..."
 
+run_lake_validator() {
+  local lake_dst="$1"
+  local validator="/workspaces/ahriTRErRs/scripts/validate_test_lake_content.sh"
+
+  if [[ -x "${validator}" ]]; then
+    "${validator}" "${lake_dst}" || true
+  else
+    echo "[INFO] Validator not found at ${validator}; skipping content validation."
+  fi
+}
+
 # Ensure test lake mount point exists and is accessible
 ensure_test_lake_mount() {
   local lake_src="${TRE_TEST_LAKE_PATH_WINDOWS:-}"
@@ -24,6 +35,7 @@ ensure_test_lake_mount() {
 
   if mountpoint -q "${lake_dst}" 2>/dev/null; then
     echo "✓ TRE Samba mount already present at ${lake_dst}"
+    run_lake_validator "${lake_dst}"
     return 0
   fi
 
@@ -111,6 +123,7 @@ EOF
     echo "  Source: ${lake_src}"
     echo "  Destination: ${lake_dst}"
     echo "  Domain: ${samba_domain}"
+    run_lake_validator "${lake_dst}"
   else
     echo "[WARN] TRE Samba mount failed (this is normal in some environments)"
     echo "       Ensure network connectivity to ${lake_src}"

@@ -1,6 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+run_lake_validator() {
+  local lake_dst="$1"
+  local validator="/workspaces/ahriTRErRs/scripts/validate_test_lake_content.sh"
+
+  if [[ -x "${validator}" ]]; then
+    "${validator}" "${lake_dst}" || true
+  else
+    echo "[INFO] Validator not found at ${validator}; skipping content validation."
+  fi
+}
+
 mount_tre_lake_if_configured() {
   local lake_src="${TRE_TEST_LAKE_PATH_WINDOWS:-}"
   local lake_dst="${TRE_TEST_LAKE_PATH:-}"
@@ -15,6 +26,7 @@ mount_tre_lake_if_configured() {
 
   if mountpoint -q "${lake_dst}"; then
     echo "[INFO] TRE Samba mount already present at ${lake_dst}."
+    run_lake_validator "${lake_dst}"
     return 0
   fi
 
@@ -80,6 +92,7 @@ mount_tre_lake_if_configured() {
   if ${as_root} mount -t cifs "${lake_src}" "${lake_dst}" \
       -o "${auth_opts},vers=3.0,uid=${uid},gid=${gid},file_mode=0664,dir_mode=0775,noperm"; then
     echo "[INFO] TRE Samba mount successful: ${lake_src} -> ${lake_dst}."
+    run_lake_validator "${lake_dst}"
   else
     echo "[WARN] TRE Samba mount failed: ${lake_src} -> ${lake_dst}."
   fi
