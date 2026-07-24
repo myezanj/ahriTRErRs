@@ -16,6 +16,9 @@ echo ""
 if mount | grep -q "$MOUNT_POINT"; then
   echo "✓ $MOUNT_POINT is already mounted"
   mount | grep "$MOUNT_POINT"
+  if [ -x "/workspaces/ahriTRErRs/scripts/validate_test_lake_content.sh" ]; then
+    /workspaces/ahriTRErRs/scripts/validate_test_lake_content.sh "$MOUNT_POINT"
+  fi
   exit 0
 fi
 
@@ -107,3 +110,7 @@ fi
 
 echo ""
 echo "✅ Test lake is now mounted and ready for use"
+
+if [ -x "/workspaces/ahriTRErRs/scripts/validate_test_lake_content.sh" ]; then
+  /workspaces/ahriTRErRs/scripts/validate_test_lake_content.sh "$MOUNT_POINT"
+fi
