@@ -301,9 +301,9 @@ study_get <- function(client, name = NULL, ..., .body = NULL, .protocol_version 
   )
 }
 
-study_list <- function(client, format_text_json = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
+study_list <- function(client, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    "--format text|json" = format_text_json
+    "format" = format
   )
   tre_command_call(
     client = client,

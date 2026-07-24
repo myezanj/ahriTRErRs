@@ -67,6 +67,23 @@ test_that("explicit body overrides variadic body fields", {
   expect_equal(captured$data, list(study = "demo"))
 })
 
+test_that("wrapper field names are normalized for protocol request bodies", {
+  captured <- testthat::with_mocked_bindings(
+    execute_json = function(client, request) {
+      list(
+        envelope = list(ok = TRUE, kind = request$kind, data = request$body),
+        payloads = list()
+      )
+    },
+    dataset_list(list(client = "ok"), study = "demo", include_versions = TRUE, format = "json")
+  )
+
+  expect_identical(captured$data$study, "demo")
+  expect_identical(captured$data$include_versions, TRUE)
+  expect_identical(captured$data$format, "json")
+  expect_false(any(grepl("^-", names(captured$data))))
+})
+
 test_that("protocol failures are converted to ahri_tre_protocol_error", {
   expect_error(
     testthat::with_mocked_bindings(
@@ -145,7 +162,7 @@ test_that("no-live-session envelope returns empty data for read-like wrappers", 
       tre_execute_via_cli = function(kind, body) NULL,
       dataset_list(list(client = "ok"), format = "json")
     ),
-    "no live session is selected; returning empty result"
+    "no live session selected; returning empty result"
   )
 })
 
@@ -172,14 +189,24 @@ test_that("no-live-session envelope errors when soft handling is disabled", {
   )
 })
 
-test_that("CLI fallback quotes shell-sensitive argument values", {
+test_that("CLI fallback passes raw system2 argument values", {
   args <- ahriTRErRs:::tre_cli_args_from_body(
     "ingest.dataset.from-sql",
     list(sql = "select * from Rfam.family", description = "mysql select all family")
   )
 
-  expect_identical(args[[5]], "'select * from Rfam.family'")
-  expect_identical(args[[7]], "'mysql select all family'")
+  expect_identical(args[[5]], "select * from Rfam.family")
+  expect_identical(args[[7]], "mysql select all family")
+})
+
+test_that("CLI fallback normalizes already-dashed keys", {
+  args <- ahriTRErRs:::tre_cli_args_from_body(
+    "study.list",
+    list("--format" = "json")
+  )
+
+  expect_true("--format" %in% args)
+  expect_false("----format" %in% args)
 })
 
 test_that("wrapper output coerces JSON string data to R objects", {
