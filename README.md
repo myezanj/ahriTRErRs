@@ -33,6 +33,26 @@ runtime-backed operations.
 For repository development, the devcontainer installer already automates this
 release download and verification flow using `.devcontainer/install_ahri_tre_runtime.sh`.
 
+### Runtime Helper For Scripts
+
+For package examples and external scripts, prefer the package helper
+`runtime_ensure_root()` instead of duplicating local runtime-manifest checks.
+
+```r
+runtime_root <- runtime_ensure_root(candidates = c(
+  "/workspaces/ahriTRErRs/.runtime/ahri-tre-runtime",
+  "/opt/ahri-tre-runtime"
+))
+```
+
+Behavior:
+
+- Uses explicit `root` when provided.
+- Falls back to `AHRI_TRE_RUNTIME_ROOT` when valid.
+- Searches fallback candidate paths for `share/ahri-tre/manifest.json`.
+- Sets `AHRI_TRE_RUNTIME_ROOT` to the resolved path.
+- Raises `ahri_tre_artifact_error` if no valid runtime root is found.
+
 ## Development
 
 For local wrapper work, set `AHRI_TRE_RUNTIME_ROOT` to an unpacked runtime
