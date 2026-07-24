@@ -12,6 +12,10 @@ runtime artifact. It must not build the Rust workspace, depend on Cargo, or
 assume repository-relative `target/` paths. Development may set
 `AHRI_TRE_RUNTIME_ROOT` to a staged runtime package for wrapper work.
 
+For package examples and script entrypoints, prefer the package-level
+`runtime_ensure_root()` helper to resolve and set `AHRI_TRE_RUNTIME_ROOT`
+instead of duplicating inline manifest-discovery logic.
+
 ## Contract Smoke
 
 Run the shared contract smoke path against a staged or released runtime
@@ -102,26 +106,14 @@ Latest backend handoff report:
 
 Current validation snapshot:
 
-- Session preflight is now explicit before RFAM study reads. The preferred
-  setup path is `Rscript inst/examples/open_oauth_session.r`, which writes a
-  stable profile at `.runtime/ahri-tre-open-oauth.env`, runs
-  `session open-oauth --profile`, and exits non-zero if the session is still
-  inactive after the OAuth attempt.
-- `inst/examples/write_oauth_profile.r` remains available as the lower-level
-  helper when only the validated OAuth profile file is needed.
-- `inst/examples/read_rfam.r` now exits non-zero by default when no live TRE
-  session is available; set `AHRI_TRE_FAIL_ON_MISSING_SESSION=false` for
-  diagnostics-only runs that should keep the previous zero-exit behavior.
-- Strict row-read validation (`inst/examples/validate_row_read_strict.r`) fails
-  for `Rfam_Database_Collection` because no RFAM dataset rows are currently
-  readable in this backend state.
-- Relaxed diagnostics (`inst/examples/read_rfam.r` with
-  `AHRI_TRE_FAIL_ON_MISSING_SESSION=false`,
-  `AHRI_TRE_ROW_PREFLIGHT_FAIL_FAST=false` and
-  `AHRI_TRE_ENFORCE_ROW_READ=false`) enumerate all affected RFAM datasets and
-  missing DuckLake tables.
-- Client-side row-read checks and fail-fast controls are implemented and
-  working; remaining remediation is backend table availability/materialization.
+- Session setup remains a prerequisite: `inst/examples/read_rfam.r` exits
+  cleanly with guidance when no live session is selected.
+- `inst/examples/read_rfam.r` now relies on package-level wrappers and
+  package-level runtime resolution (`runtime_ensure_root()`) instead of
+  script-local runtime helper blocks.
+- RFAM dataset reads for `Rfam_Database_Collection` remain blocked in backend
+  state (missing table/materialization), as captured in the backend handoff
+  report linked above.
 
 ## Package Scan Status
 
