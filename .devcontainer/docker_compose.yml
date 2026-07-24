@@ -38,6 +38,7 @@ services:
     volumes:
       - ..:/workspaces/ahriTRErRs:cached
       - tre-lake:${AHRI_TRE_LAKE_CONTAINER_PATH:-/workspaces/ahriTRErRs/.lake}
+      - ${HOST_TEST_LAKE_PATH:-/mnt/test_lake/pilot_tre}:${TRE_TEST_LAKE_PATH:-/mnt/test_lake/pilot_tre}
       - vscode-server:/home/vscode/.vscode-server
     networks:
       tre-net:
