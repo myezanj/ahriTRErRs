@@ -6,16 +6,23 @@ ensure_test_lake_mounted() {
   local validator="/workspaces/ahriTRErRs/scripts/validate_test_lake_content.sh"
 
   if mount | grep -q "/mnt/test_lake/pilot_tre"; then
-    echo "✓ Test lake is already mounted"
+    local fs_type
+    fs_type="$(findmnt -n -o FSTYPE /mnt/test_lake/pilot_tre 2>/dev/null || echo unknown)"
+    echo "✓ Test lake is already mounted (type: $fs_type)"
     if [ -x "$validator" ]; then
-      "$validator" "/mnt/test_lake/pilot_tre"
+      "$validator" "/mnt/test_lake/pilot_tre" || true
     fi
-    return 0
+    if [ "$fs_type" = "cifs" ]; then
+      return 0
+    fi
+
+    echo ""
+    echo "⚠ Existing mount is not CIFS. Attempting SMB mount if allowed..."
   fi
   
   echo "🔗 Mounting test lake..."
   if [ -x "/workspaces/ahriTRErRs/scripts/mount_test_lake.sh" ]; then
-    sudo /workspaces/ahriTRErRs/scripts/mount_test_lake.sh
+    ALLOW_OVERMOUNT_CIFS="${ALLOW_OVERMOUNT_CIFS:-0}" sudo -E /workspaces/ahriTRErRs/scripts/mount_test_lake.sh
     local mount_status=$?
     if [ $mount_status -eq 0 ] && [ -x "$validator" ]; then
       "$validator" "/mnt/test_lake/pilot_tre"

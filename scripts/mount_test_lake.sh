@@ -14,12 +14,29 @@ echo ""
 
 # Check if already mounted
 if mount | grep -q "$MOUNT_POINT"; then
-  echo "✓ $MOUNT_POINT is already mounted"
+  MOUNT_FSTYPE=$(findmnt -n -o FSTYPE "$MOUNT_POINT" 2>/dev/null || echo "unknown")
+  echo "✓ $MOUNT_POINT is already mounted (type: $MOUNT_FSTYPE)"
   mount | grep "$MOUNT_POINT"
-  if [ -x "/workspaces/ahriTRErRs/scripts/validate_test_lake_content.sh" ]; then
-    /workspaces/ahriTRErRs/scripts/validate_test_lake_content.sh "$MOUNT_POINT"
+
+  VALIDATOR="/workspaces/ahriTRErRs/scripts/validate_test_lake_content.sh"
+  VALIDATION_STATUS=0
+  if [ -x "$VALIDATOR" ]; then
+    "$VALIDATOR" "$MOUNT_POINT" || VALIDATION_STATUS=$?
   fi
-  exit 0
+
+  if [ "$MOUNT_FSTYPE" = "cifs" ] && [ $VALIDATION_STATUS -eq 0 ]; then
+    exit 0
+  fi
+
+  if [ "$MOUNT_FSTYPE" != "cifs" ] && [ "${ALLOW_OVERMOUNT_CIFS:-0}" != "1" ]; then
+    echo ""
+    echo "⚠ Existing mount is not CIFS and lake content is not ready."
+    echo "  Set ALLOW_OVERMOUNT_CIFS=1 to attempt SMB mount over this path, or"
+    echo "  unmount the current filesystem on $MOUNT_POINT first."
+    exit 2
+  fi
+
+  echo "⚠ Proceeding to SMB mount attempt over existing mount..."
 fi
 
 # Check credentials from .env
