@@ -78,6 +78,31 @@ Run tests in the devcontainer with:
 R -q -e 'devtools::test()'
 ```
 
+### Test Lake Mount (Devcontainer)
+
+For TRE integration tests that require NAS lake data, use the repository
+mount workflow and validate content after mount:
+
+```bash
+sudo /workspaces/ahriTRErRs/scripts/mount_test_lake.sh
+/workspaces/ahriTRErRs/scripts/validate_test_lake_content.sh /mnt/test_lake/pilot_tre
+```
+
+If `/mnt/test_lake/pilot_tre` is already mounted as non-CIFS and content
+validation fails, use controlled overmount:
+
+```bash
+ALLOW_OVERMOUNT_CIFS=1 sudo -E /workspaces/ahriTRErRs/scripts/mount_test_lake.sh
+```
+
+Expected required paths include:
+
+- `study_019e39f6_24e3_74fa_88e1_41e6c62fe539`
+- `study_019ebd22_a12b_727c_9e64_dad1c3b5af89`
+- `__tre_duckdb_stage`
+- `study_019e3fde_a71e_7ee3_9f0d_180879bfb42e`
+- `study_019e3fe4_eabf_7ebf_a931_972ffa8d38a3`
+
 On Windows PowerShell, prefer `R.exe` when running locally because `R` may
 resolve to an alias in some shells:
 

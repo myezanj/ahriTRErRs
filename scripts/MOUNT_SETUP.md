@@ -4,26 +4,32 @@
 This directory contains scripts and configurations to auto-mount the test lake from SMB share:
 - **Source**: `//DBN-Pure-Nas-01.ahri.org/testlake/pilot_tre`
 - **Mount Point**: `/mnt/test_lake/pilot_tre`
-- **Credentials**: From `.env` (SAMBA_USERNAME, SAMBA_PASSWORD)
+- **Credentials**: From `.env` (SAMBA_DOMAIN, SAMBA_USERNAME, SAMBA_PASSWORD)
+- **Validation**: Required paths enforced via `validate_test_lake_content.sh`
 
 ## Option 1: Using mount_test_lake.sh (Recommended for Dev)
 
 This is the safest option for development environments as it:
 - Reads credentials from .env dynamically
-- Creates credentials file with secure permissions (600)
+- Performs DNS and TCP preflight checks (445, then 139)
+- Supports controlled overmount for non-CIFS pre-mounted path
 - Can be run on-demand
 - Provides clear feedback
+- Validates required lake content after mount
 
 ### Setup:
 ```bash
 chmod +x /workspaces/ahriTRErRs/scripts/mount_test_lake.sh
 sudo /workspaces/ahriTRErRs/scripts/mount_test_lake.sh
+
+# If /mnt/test_lake/pilot_tre is already mounted as non-CIFS:
+ALLOW_OVERMOUNT_CIFS=1 sudo -E /workspaces/ahriTRErRs/scripts/mount_test_lake.sh
 ```
 
 ### Result:
-- Creates `/root/.smbcredentials` (600 permissions)
 - Mounts share at `/mnt/test_lake/pilot_tre`
 - Verifies mount is active
+- Verifies expected directories exist
 
 ---
 
@@ -119,23 +125,36 @@ ls -la /mnt/test_lake/pilot_tre/
 
 # Check permissions
 stat /mnt/test_lake/pilot_tre
+
+# Validate required test lake paths
+/workspaces/ahriTRErRs/scripts/validate_test_lake_content.sh /mnt/test_lake/pilot_tre
 ```
+
+Expected required paths:
+
+- `study_019e39f6_24e3_74fa_88e1_41e6c62fe539`
+- `study_019ebd22_a12b_727c_9e64_dad1c3b5af89`
+- `__tre_duckdb_stage`
+- `study_019e3fde_a71e_7ee3_9f0d_180879bfb42e`
+- `study_019e3fe4_eabf_7ebf_a931_972ffa8d38a3`
 
 ## Troubleshooting
 
 **Mount fails with permission error:**
 ```bash
-sudo chmod 600 /root/.smbcredentials
+sudo /workspaces/ahriTRErRs/scripts/mount_test_lake.sh
 ```
 
-**Credentials file doesn't exist:**
+**Network connection unavailable (ports blocked):**
 ```bash
-sudo touch /root/.smbcredentials
-sudo chmod 600 /root/.smbcredentials
-sudo sh -c 'cat >> /root/.smbcredentials << EOF
-username=njabulo.myeza
-password=<password from .env SAMBA_PASSWORD>
-EOF'
+getent hosts DBN-Pure-Nas-01.ahri.org
+nc -zv -w3 DBN-Pure-Nas-01.ahri.org 445
+nc -zv -w3 DBN-Pure-Nas-01.ahri.org 139
+```
+
+**Path already mounted but not CIFS and missing data:**
+```bash
+ALLOW_OVERMOUNT_CIFS=1 sudo -E /workspaces/ahriTRErRs/scripts/mount_test_lake.sh
 ```
 
 **Network connection unavailable:**
@@ -155,6 +174,7 @@ sudo vim /etc/fstab
 ## See Also
 
 - `mount_test_lake.sh` - Main auto-mount script
+- `validate_test_lake_content.sh` - Required lake content validator
 - `test-lake-mount.mount` - systemd mount unit
 - `fstab-entry.txt` - fstab configuration reference
 - `.env` - Credentials configuration

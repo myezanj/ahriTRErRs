@@ -20,9 +20,18 @@ The mount configuration requires these variables from `.env`:
 ```bash
 TRE_TEST_LAKE_PATH_WINDOWS="//DBN-Pure-Nas-01.ahri.org/testlake/pilot_tre"
 TRE_TEST_LAKE_PATH="/mnt/test_lake/pilot_tre"
+SAMBA_DOMAIN="AHRI"
 SAMBA_USERNAME="njabulo.myeza"
 SAMBA_PASSWORD="your_password_here"
 ```
+
+The devcontainer also sets this in VS Code terminal settings:
+
+```bash
+ALLOW_OVERMOUNT_CIFS=1
+```
+
+This allows controlled CIFS overmount when `/mnt/test_lake/pilot_tre` is already mounted as non-CIFS and required data is missing.
 
 ### Mount Details
 
@@ -68,7 +77,18 @@ sudo /workspaces/ahriTRErRs/scripts/mount_test_lake.sh
 # Verify mount
 mount | grep test_lake
 ls -la /mnt/test_lake/pilot_tre
+
+# Validate required study/stage folders
+/workspaces/ahriTRErRs/scripts/validate_test_lake_content.sh /mnt/test_lake/pilot_tre
 ```
+
+Expected required paths:
+
+- `study_019e39f6_24e3_74fa_88e1_41e6c62fe539`
+- `study_019ebd22_a12b_727c_9e64_dad1c3b5af89`
+- `__tre_duckdb_stage`
+- `study_019e3fde_a71e_7ee3_9f0d_180879bfb42e`
+- `study_019e3fe4_eabf_7ebf_a931_972ffa8d38a3`
 
 ## Troubleshooting
 
@@ -78,6 +98,7 @@ ls -la /mnt/test_lake/pilot_tre
 1. Network not accessible to SMB server
 2. Credentials in `.env` are incorrect
 3. Container doesn't have required permissions
+4. A non-CIFS filesystem is already mounted at `/mnt/test_lake/pilot_tre`
 
 **Check:**
 ```bash
@@ -85,6 +106,19 @@ ls -la /mnt/test_lake/pilot_tre
 env | grep SAMBA
 env | grep TRE_TEST_LAKE_PATH
 mount | grep test_lake
+/workspaces/ahriTRErRs/scripts/validate_test_lake_content.sh /mnt/test_lake/pilot_tre
+```
+
+If the mountpoint is non-CIFS and validation fails, run:
+
+```bash
+ALLOW_OVERMOUNT_CIFS=1 sudo -E /workspaces/ahriTRErRs/scripts/mount_test_lake.sh
+```
+
+If SMB ports are blocked inside the container, use host bind fallback by mounting on the Docker host and letting Compose map host path into container:
+
+```yaml
+${HOST_TEST_LAKE_PATH:-/mnt/test_lake/pilot_tre}:${TRE_TEST_LAKE_PATH:-/mnt/test_lake/pilot_tre}
 ```
 
 ### Credentials not being read
