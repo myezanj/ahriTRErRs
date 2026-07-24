@@ -2,10 +2,10 @@
 
 auth_login <- function(client, write_token_file = NULL, write_auth_context = NULL, cache_token = NULL, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    "--write-token-file" = write_token_file,
-    "--write-auth-context" = write_auth_context,
-    "--cache-token" = cache_token,
-    "--format" = format
+    "write-token-file" = write_token_file,
+    "write-auth-context" = write_auth_context,
+    "cache-token" = cache_token,
+    "format" = format
   )
   tre_command_call(
     client = client,
@@ -22,8 +22,8 @@ auth_login <- function(client, write_token_file = NULL, write_auth_context = NUL
 
 auth_logout <- function(client, cached = NULL, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    "--cached" = cached,
-    "--format" = format
+    "cached" = cached,
+    "format" = format
   )
   tre_command_call(
     client = client,
@@ -68,9 +68,9 @@ daemon_doctor <- function(client, ..., .body = NULL, .protocol_version = TRE_PRO
   )
 }
 
-daemon_start <- function(client, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
+daemon_start <- function(client, format_text_json = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    format = format
+    "format text|json" = format_text_json
   )
   tre_command_call(
     client = client,
@@ -85,9 +85,9 @@ daemon_start <- function(client, format = NULL, ..., .body = NULL, .protocol_ver
   )
 }
 
-daemon_status <- function(client, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
+daemon_status <- function(client, format_text_json = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    "--format" = format
+    "format text|json" = format_text_json
   )
   tre_command_call(
     client = client,
@@ -102,9 +102,9 @@ daemon_status <- function(client, format = NULL, ..., .body = NULL, .protocol_ve
   )
 }
 
-daemon_stop <- function(client, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
+daemon_stop <- function(client, format_text_json = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    "--format" = format
+    "format text|json" = format_text_json
   )
   tre_command_call(
     client = client,
@@ -166,8 +166,8 @@ session_list <- function(client, ..., .body = NULL, .protocol_version = TRE_PROT
 
 session_open <- function(client, name = NULL, env_file_session_name = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    "--name" = name,
-    "--env-file; session name" = env_file_session_name
+    "name" = name,
+    "env-file; session name" = env_file_session_name
   )
   tre_command_call(
     client = client,
@@ -184,9 +184,9 @@ session_open <- function(client, name = NULL, env_file_session_name = NULL, ...,
 
 session_reopen <- function(client, name = NULL, force_reauth = NULL, clear_token_cache = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    "--name" = name,
-    "--force-reauth" = force_reauth,
-    "--clear-token-cache" = clear_token_cache
+    "name" = name,
+    "force-reauth" = force_reauth,
+    "clear-token-cache" = clear_token_cache
   )
   tre_command_call(
     client = client,
@@ -218,7 +218,7 @@ session_status <- function(client, ..., .body = NULL, .protocol_version = TRE_PR
 
 session_use <- function(client, name = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    "--name" = name
+    "name" = name
   )
   tre_command_call(
     client = client,

@@ -1,37 +1,4 @@
 useDynLib(ahriTRErRs, .registration = TRUE)
-# Core client and protocol functions
-export(AhriTreClient)
-export(execute_json)
-export(protocol_failure_summary)
-# Runtime configuration
-export(RuntimeConfig)
-export(RuntimeArtifact)
-export(runtime_status)
-export(runtime_discover_daemon_binary)
-export(runtime_ensure)
-export(runtime_stop)
-# Artifact discovery
-export(RuntimeArtifact)
-export(discover_runtime_artifact)
-export(runtime_c_header)
-export(runtime_daemon_binary)
-export(runtime_c_abi_library)
-export(require_runtime_files)
-export(runtime_ensure_root)
-# Compatibility
-export(CompatibilityInfo)
-export(check_protocol_compatibility)
-# Error handling
-export(try_tre)
-export(format_try_error)
-export(is_tre_error)
-# Payloads
-export(Payload)
-export(arrow_ipc_to_table)
-export(payloads_from_result)
-# S3 methods
-S3method(close, ahri_tre_client)
-# Wrapper functions
 export(asset_delete)
 export(asset_duo_clear)
 export(asset_duo_list)

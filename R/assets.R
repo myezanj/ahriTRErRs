@@ -2,15 +2,15 @@
 
 asset_delete <- function(client, study = NULL, name = NULL, reason = NULL, actor = NULL, cascade = NULL, force = NULL, dry_run = NULL, yes = NULL, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    "--study" = study,
-    "--name" = name,
-    "--reason" = reason,
-    "--actor" = actor,
-    "--cascade" = cascade,
-    "--force" = force,
-    "--dry-run" = dry_run,
-    "--yes" = yes,
-    "--format" = format
+    "study" = study,
+    "name" = name,
+    "reason" = reason,
+    "actor" = actor,
+    "cascade" = cascade,
+    "force" = force,
+    "dry-run" = dry_run,
+    "yes" = yes,
+    "format" = format
   )
   tre_command_call(
     client = client,
@@ -27,10 +27,10 @@ asset_delete <- function(client, study = NULL, name = NULL, reason = NULL, actor
 
 asset_duo_clear <- function(client, study = NULL, asset = NULL, version = NULL, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    "--study" = study,
-    "--asset" = asset,
-    "--version" = version,
-    "--format" = format
+    "study" = study,
+    "asset" = asset,
+    "version" = version,
+    "format" = format
   )
   tre_command_call(
     client = client,
@@ -47,11 +47,11 @@ asset_duo_clear <- function(client, study = NULL, asset = NULL, version = NULL, 
 
 asset_duo_list <- function(client, study = NULL, asset = NULL, version = NULL, effective = NULL, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    "--study" = study,
-    "--asset" = asset,
-    "--version" = version,
-    "--effective" = effective,
-    "--format" = format
+    "study" = study,
+    "asset" = asset,
+    "version" = version,
+    "effective" = effective,
+    "format" = format
   )
   tre_command_call(
     client = client,
@@ -68,11 +68,11 @@ asset_duo_list <- function(client, study = NULL, asset = NULL, version = NULL, e
 
 asset_duo_replace <- function(client, study = NULL, asset = NULL, version = NULL, restrictions = NULL, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    "--study" = study,
-    "--asset" = asset,
-    "--version" = version,
-    "--restrictions" = restrictions,
-    "--format" = format
+    "study" = study,
+    "asset" = asset,
+    "version" = version,
+    "restrictions" = restrictions,
+    "format" = format
   )
   tre_command_call(
     client = client,
@@ -89,10 +89,10 @@ asset_duo_replace <- function(client, study = NULL, asset = NULL, version = NULL
 
 asset_get <- function(client, study = NULL, name = NULL, type = NULL, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    "--study" = study,
-    "--name" = name,
-    "--type" = type,
-    "--format" = format
+    "study" = study,
+    "name" = name,
+    "type" = type,
+    "format" = format
   )
   tre_command_call(
     client = client,
@@ -109,8 +109,8 @@ asset_get <- function(client, study = NULL, name = NULL, type = NULL, format = N
 
 asset_list <- function(client, study = NULL, type_dataset_file_format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    "--study" = study,
-    "--type dataset|file; --format" = type_dataset_file_format
+    "study" = study,
+    "type dataset|file; --format" = type_dataset_file_format
   )
   tre_command_call(
     client = client,
@@ -127,10 +127,10 @@ asset_list <- function(client, study = NULL, type_dataset_file_format = NULL, ..
 
 asset_versions <- function(client, study = NULL, asset = NULL, type = NULL, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    "--study" = study,
-    "--asset" = asset,
-    "--type" = type,
-    "--format" = format
+    "study" = study,
+    "asset" = asset,
+    "type" = type,
+    "format" = format
   )
   tre_command_call(
     client = client,
@@ -147,16 +147,16 @@ asset_versions <- function(client, study = NULL, asset = NULL, type = NULL, form
 
 datafile_delete <- function(client, study = NULL, asset = NULL, version_latest_semver_all = NULL, reason = NULL, actor = NULL, cascade = NULL, force = NULL, dry_run = NULL, yes = NULL, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    "--study" = study,
-    "--asset" = asset,
-    "--version latest|<semver>|all" = version_latest_semver_all,
-    "--reason" = reason,
-    "--actor" = actor,
-    "--cascade" = cascade,
-    "--force" = force,
-    "--dry-run" = dry_run,
-    "--yes" = yes,
-    "--format" = format
+    "study" = study,
+    "asset" = asset,
+    "version latest|<semver>|all" = version_latest_semver_all,
+    "reason" = reason,
+    "actor" = actor,
+    "cascade" = cascade,
+    "force" = force,
+    "dry-run" = dry_run,
+    "yes" = yes,
+    "format" = format
   )
   tre_command_call(
     client = client,
@@ -173,12 +173,12 @@ datafile_delete <- function(client, study = NULL, asset = NULL, version_latest_s
 
 datafile_export <- function(client, study = NULL, asset = NULL, version = NULL, to = NULL, overwrite = NULL, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    "--study" = study,
-    "--asset" = asset,
-    "--version" = version,
-    "--to" = to,
-    "--overwrite" = overwrite,
-    "--format" = format
+    "study" = study,
+    "asset" = asset,
+    "version" = version,
+    "to" = to,
+    "overwrite" = overwrite,
+    "format" = format
   )
   tre_command_call(
     client = client,
@@ -195,9 +195,9 @@ datafile_export <- function(client, study = NULL, asset = NULL, version = NULL, 
 
 datafile_list <- function(client, study = NULL, include_versions = NULL, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    "--study" = study,
-    "--include-versions" = include_versions,
-    "--format" = format
+    "study" = study,
+    "include-versions" = include_versions,
+    "format" = format
   )
   tre_command_call(
     client = client,
@@ -214,10 +214,10 @@ datafile_list <- function(client, study = NULL, include_versions = NULL, format 
 
 datafile_metadata <- function(client, study = NULL, asset = NULL, version = NULL, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    "--study" = study,
-    "--asset" = asset,
-    "--version" = version,
-    "--format" = format
+    "study" = study,
+    "asset" = asset,
+    "version" = version,
+    "format" = format
   )
   tre_command_call(
     client = client,
@@ -234,10 +234,10 @@ datafile_metadata <- function(client, study = NULL, asset = NULL, version = NULL
 
 datafile_search <- function(client, study = NULL, limit = NULL, width = NULL, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    "--study" = study,
-    "--limit" = limit,
-    "--width" = width,
-    "--format" = format
+    "study" = study,
+    "limit" = limit,
+    "width" = width,
+    "format" = format
   )
   tre_command_call(
     client = client,
@@ -252,14 +252,14 @@ datafile_search <- function(client, study = NULL, limit = NULL, width = NULL, fo
   )
 }
 
-dataset_data <- function(client, study = NULL, dataset = NULL, limit = NULL, to = NULL, format = NULL, compress = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
+dataset_data <- function(client, study = NULL, dataset = NULL, limit = NULL, to = NULL, format_arrow_parquet_csv_json = NULL, compress = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    study = study,
-    dataset = dataset,
-    limit = limit,
-    to = to,
-    format = format,
-    compress = compress
+    "study" = study,
+    "dataset" = dataset,
+    "limit" = limit,
+    "to" = to,
+    "format arrow|parquet|csv|json" = format_arrow_parquet_csv_json,
+    "compress" = compress
   )
   tre_command_call(
     client = client,
@@ -276,16 +276,16 @@ dataset_data <- function(client, study = NULL, dataset = NULL, limit = NULL, to 
 
 dataset_delete <- function(client, study = NULL, dataset = NULL, version_latest_semver_all = NULL, reason = NULL, actor = NULL, cascade = NULL, force = NULL, dry_run = NULL, yes = NULL, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    "--study" = study,
-    "--dataset" = dataset,
-    "--version latest|<semver>|all" = version_latest_semver_all,
-    "--reason" = reason,
-    "--actor" = actor,
-    "--cascade" = cascade,
-    "--force" = force,
-    "--dry-run" = dry_run,
-    "--yes" = yes,
-    "--format" = format
+    "study" = study,
+    "dataset" = dataset,
+    "version latest|<semver>|all" = version_latest_semver_all,
+    "reason" = reason,
+    "actor" = actor,
+    "cascade" = cascade,
+    "force" = force,
+    "dry-run" = dry_run,
+    "yes" = yes,
+    "format" = format
   )
   tre_command_call(
     client = client,
@@ -300,14 +300,14 @@ dataset_delete <- function(client, study = NULL, dataset = NULL, version_latest_
   )
 }
 
-dataset_export <- function(client, study = NULL, dataset = NULL, limit = NULL, to = NULL, format = NULL, compress = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
+dataset_export <- function(client, study = NULL, dataset = NULL, limit = NULL, to = NULL, format_arrow_parquet_csv_json = NULL, compress = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    study = study,
-    dataset = dataset,
-    limit = limit,
-    to = to,
-    format = format,
-    compress = compress
+    "study" = study,
+    "dataset" = dataset,
+    "limit" = limit,
+    "to" = to,
+    "format arrow|parquet|csv|json" = format_arrow_parquet_csv_json,
+    "compress" = compress
   )
   tre_command_call(
     client = client,
@@ -324,9 +324,9 @@ dataset_export <- function(client, study = NULL, dataset = NULL, limit = NULL, t
 
 dataset_list <- function(client, study = NULL, include_versions = NULL, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    "--study" = study,
-    "--include-versions" = include_versions,
-    "--format" = format
+    "study" = study,
+    "include-versions" = include_versions,
+    "format" = format
   )
   tre_command_call(
     client = client,
@@ -343,10 +343,10 @@ dataset_list <- function(client, study = NULL, include_versions = NULL, format =
 
 dataset_metadata <- function(client, study = NULL, dataset = NULL, with_variables = NULL, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    "--study" = study,
-    "--dataset" = dataset,
-    "--with-variables" = with_variables,
-    "--format" = format
+    "study" = study,
+    "dataset" = dataset,
+    "with-variables" = with_variables,
+    "format" = format
   )
   tre_command_call(
     client = client,
@@ -363,11 +363,11 @@ dataset_metadata <- function(client, study = NULL, dataset = NULL, with_variable
 
 dataset_preview <- function(client, study = NULL, dataset = NULL, limit = NULL, width = NULL, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    "--study" = study,
-    "--dataset" = dataset,
-    "--limit" = limit,
-    "--width" = width,
-    "--format" = format
+    "study" = study,
+    "dataset" = dataset,
+    "limit" = limit,
+    "width" = width,
+    "format" = format
   )
   tre_command_call(
     client = client,
@@ -384,10 +384,10 @@ dataset_preview <- function(client, study = NULL, dataset = NULL, limit = NULL, 
 
 dataset_search <- function(client, study = NULL, limit = NULL, width = NULL, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    "--study" = study,
-    "--limit" = limit,
-    "--width" = width,
-    "--format" = format
+    "study" = study,
+    "limit" = limit,
+    "width" = width,
+    "format" = format
   )
   tre_command_call(
     client = client,
@@ -404,14 +404,14 @@ dataset_search <- function(client, study = NULL, limit = NULL, width = NULL, for
 
 dataset_withdraw <- function(client, study = NULL, dataset = NULL, version = NULL, reason = NULL, actor = NULL, force = NULL, drop_lake_table = NULL, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    "--study" = study,
-    "--dataset" = dataset,
-    "--version" = version,
-    "--reason" = reason,
-    "--actor" = actor,
-    "--force" = force,
-    "--drop-lake-table" = drop_lake_table,
-    "--format" = format
+    "study" = study,
+    "dataset" = dataset,
+    "version" = version,
+    "reason" = reason,
+    "actor" = actor,
+    "force" = force,
+    "drop-lake-table" = drop_lake_table,
+    "format" = format
   )
   tre_command_call(
     client = client,

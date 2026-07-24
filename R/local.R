@@ -2,7 +2,7 @@
 
 completion <- function(client, hell = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    "--hell" = hell
+    "hell" = hell
   )
   tre_command_call(
     client = client,
@@ -19,7 +19,7 @@ completion <- function(client, hell = NULL, ..., .body = NULL, .protocol_version
 
 doctor <- function(client, trict_optional_runtime_profile_auth_flags = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    "--strict; optional runtime/profile/auth flags" = trict_optional_runtime_profile_auth_flags
+    "strict; optional runtime/profile/auth flags" = trict_optional_runtime_profile_auth_flags
   )
   tre_command_call(
     client = client,
@@ -36,7 +36,7 @@ doctor <- function(client, trict_optional_runtime_profile_auth_flags = NULL, ...
 
 schema_get <- function(client, chema_id = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    "--chema_id" = chema_id
+    "chema_id" = chema_id
   )
   tre_command_call(
     client = client,
@@ -51,9 +51,9 @@ schema_get <- function(client, chema_id = NULL, ..., .body = NULL, .protocol_ver
   )
 }
 
-schema_list <- function(client, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
+schema_list <- function(client, format_text_json = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    format = format
+    "format text|json" = format_text_json
   )
   tre_command_call(
     client = client,
@@ -68,9 +68,9 @@ schema_list <- function(client, format = NULL, ..., .body = NULL, .protocol_vers
   )
 }
 
-version <- function(client, format = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
+version <- function(client, format_text_json = NULL, ..., .body = NULL, .protocol_version = TRE_PROTOCOL_VERSION) {
   auto_fields <- list(
-    format = format
+    "format text|json" = format_text_json
   )
   tre_command_call(
     client = client,
