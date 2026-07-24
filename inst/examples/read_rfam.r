@@ -10,29 +10,11 @@ if (requireNamespace("devtools", quietly = TRUE) &&
   library(ahriTRErRs)
 }
 
-runtime_root <- Sys.getenv("AHRI_TRE_RUNTIME_ROOT", unset = "")
-runtime_ok <- nzchar(runtime_root) && file.exists(file.path(runtime_root, "share", "ahri-tre", "manifest.json"))
-if (!runtime_ok) {
-  candidates <- c(
-    "/workspaces/ahriTRErRs/.runtime/ahri-tre-runtime",
-    "/opt/ahri-tre-runtime"
-  )
-
-  resolved <- ""
-  for (cand in candidates) {
-    if (nzchar(cand) && file.exists(file.path(cand, "share", "ahri-tre", "manifest.json"))) {
-      resolved <- cand
-      break
-    }
-  }
-
-  if (!nzchar(resolved)) {
-    stop("AHRI_TRE_RUNTIME_ROOT is unset or invalid, and no local runtime artifact was found.")
-  }
-
-  Sys.setenv(AHRI_TRE_RUNTIME_ROOT = resolved)
-  cat("[INFO] Using AHRI_TRE_RUNTIME_ROOT:", resolved, "\n")
-}
+runtime_root <- runtime_ensure_root(candidates = c(
+  "/workspaces/ahriTRErRs/.runtime/ahri-tre-runtime",
+  "/opt/ahri-tre-runtime"
+))
+cat("[INFO] Using AHRI_TRE_RUNTIME_ROOT:", runtime_root, "\n")
 
 client <- AhriTreClient()
 on.exit(try(close(client), silent = TRUE), add = TRUE)

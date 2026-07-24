@@ -74,6 +74,50 @@ discover_runtime_artifact <- function(root = NULL) {
   artifact
 }
 
+#' Resolve and set AHRI TRE runtime root
+#'
+#' Ensures `AHRI_TRE_RUNTIME_ROOT` points to a runtime artifact containing
+#' `share/ahri-tre/manifest.json`. If `root` is not provided or invalid, the
+#' function searches candidate directories and sets the environment variable to
+#' the first valid match.
+#'
+#' @param root Character. Optional explicit runtime root.
+#' @param candidates Character vector of fallback root candidates.
+#' @return Character scalar with resolved runtime root path.
+#' @export
+runtime_ensure_root <- function(root = NULL, candidates = NULL) {
+  manifest_exists <- function(path) {
+    is.character(path) && length(path) == 1L && nzchar(path) &&
+      file.exists(file.path(path, "share", "ahri-tre", "manifest.json"))
+  }
+
+  env_root <- Sys.getenv(RUNTIME_ROOT_ENV, unset = "")
+  chosen <- root %||% env_root
+  if (manifest_exists(chosen)) {
+    resolved <- normalizePath(path.expand(chosen), mustWork = FALSE)
+    Sys.setenv(AHRI_TRE_RUNTIME_ROOT = resolved)
+    return(resolved)
+  }
+
+  fallback <- candidates %||% c(
+    file.path(getwd(), ".runtime", "ahri-tre-runtime"),
+    "/opt/ahri-tre-runtime"
+  )
+
+  for (cand in fallback) {
+    if (manifest_exists(cand)) {
+      resolved <- normalizePath(path.expand(cand), mustWork = FALSE)
+      Sys.setenv(AHRI_TRE_RUNTIME_ROOT = resolved)
+      return(resolved)
+    }
+  }
+
+  abort_ahri_tre(
+    sprintf("%s is unset or invalid, and no local runtime artifact was found.", RUNTIME_ROOT_ENV),
+    class = "ahri_tre_artifact_error"
+  )
+}
+
 #' Get path to the C header file
 #'
 #' @param artifact An `ahri_tre_runtime_artifact` object.

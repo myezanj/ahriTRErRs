@@ -17,6 +17,7 @@ export(runtime_c_header)
 export(runtime_daemon_binary)
 export(runtime_c_abi_library)
 export(require_runtime_files)
+export(runtime_ensure_root)
 # Compatibility
 export(CompatibilityInfo)
 export(check_protocol_compatibility)
