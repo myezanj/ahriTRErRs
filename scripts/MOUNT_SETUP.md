@@ -110,6 +110,19 @@ sudo /workspaces/ahriTRErRs/scripts/mount_test_lake.sh
 mount | grep test_lake
 ```
 
+### VS Code Task Shortcut
+
+Use VS Code tasks for one-command execution:
+
+1. Open Command Palette and run `Tasks: Run Task`
+2. Choose `TRE: Mount + Validate Test Lake`
+3. Or run `TRE: Validate Test Lake Content`
+
+Workspace task definitions are in:
+
+- `.vscode/tasks.json`
+- `.vscode/settings.json`
+
 ---
 
 ## Verification

@@ -95,6 +95,11 @@ validation fails, use controlled overmount:
 ALLOW_OVERMOUNT_CIFS=1 sudo -E /workspaces/ahriTRErRs/scripts/mount_test_lake.sh
 ```
 
+From VS Code, you can run the same workflow with:
+
+- `Tasks: Run Task` -> `TRE: Mount + Validate Test Lake`
+- `Tasks: Run Task` -> `TRE: Validate Test Lake Content`
+
 Expected required paths include:
 
 - `study_019e39f6_24e3_74fa_88e1_41e6c62fe539`

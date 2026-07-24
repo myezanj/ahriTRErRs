@@ -1,0 +1,6 @@
+{
+  "terminal.integrated.defaultProfile.linux": "bash",
+  "terminal.integrated.env.linux": {
+    "ALLOW_OVERMOUNT_CIFS": "1"
+  }
+}

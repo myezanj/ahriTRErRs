@@ -1,0 +1,17 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "TRE: Mount + Validate Test Lake",
+      "type": "shell",
+      "command": "ALLOW_OVERMOUNT_CIFS=${ALLOW_OVERMOUNT_CIFS:-1} sudo -E /workspaces/ahriTRErRs/scripts/mount_test_lake.sh",
+      "problemMatcher": []
+    },
+    {
+      "label": "TRE: Validate Test Lake Content",
+      "type": "shell",
+      "command": "/workspaces/ahriTRErRs/scripts/validate_test_lake_content.sh /mnt/test_lake/pilot_tre",
+      "problemMatcher": []
+    }
+  ]
+}
